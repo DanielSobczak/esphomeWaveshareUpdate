@@ -2183,6 +2183,7 @@ bool WaveshareEPaper7P5InBV3::wait_until_idle_() {
   return true;
 };
 void WaveshareEPaper7P5InBV3::init_display_() {
+  Debug("START init\r\n");
   this->reset_();
 
   // COMMAND POWER SETTING
@@ -2289,8 +2290,10 @@ void WaveshareEPaper7P5InBV3::init_display_() {
   // this->command(0x24);  // LUTBB
   // for (count = 0; count < 42; count++)
   //   this->data(lut_bb_7_i_n5_v2[count]);
+  Debug("END init\r\n");
 };
 void HOT WaveshareEPaper7P5InBV3::display() {
+  Debug("START display\r\n");
   this->init_display_();
   uint32_t buf_len = this->get_buffer_length_();
 
@@ -2326,7 +2329,8 @@ void HOT WaveshareEPaper7P5InBV3::display() {
   delay(10);           // NOLINT
   this->wait_until_idle_();
   //
-  
+
+  Debug("END display before deep sleep\r\n");
   this->deep_sleep();
 }
 int WaveshareEPaper7P5InBV3::get_width_internal() { return 800; }
