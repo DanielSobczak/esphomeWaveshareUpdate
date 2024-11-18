@@ -544,6 +544,8 @@ class WaveshareEPaper7P5In : public WaveshareEPaper {
   void dump_config() override;
 
   void deep_sleep() override {
+    this->command(0x50);
+    this->data(0xF7);
     // COMMAND POWER OFF
     this->command(0x02);
     this->wait_until_idle_();
