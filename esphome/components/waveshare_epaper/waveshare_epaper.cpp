@@ -2294,18 +2294,6 @@ void HOT WaveshareEPaper7P5InBV3::display() {
   this->init_display_();
   uint32_t buf_len = this->get_buffer_length_();
 
-  // refresh with white 
-  this->command(0x10);
-  for (uint32_t i = 0; i < buf_len; i++) {
-    this->data(0x00);
-  }
-
-  this->command(0x13);  // Start Transmission
-  for (uint32_t i = 0; i < buf_len; i++) {
-     this->data(0xFF);
-  }
-  // end of refresh with white
-
   this->command(0x10);
   for (uint32_t i = 0; i < buf_len; i++) {
     this->data(~this->buffer_[i]);
