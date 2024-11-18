@@ -2163,7 +2163,10 @@ void WaveshareEPaper7P5InBV2::dump_config() {
   LOG_UPDATE_INTERVAL(this);
 }
 
-void WaveshareEPaper7P5InBV3::initialize() { this->init_display_(); }
+void WaveshareEPaper7P5InBV3::initialize() { 
+  ESP_LOGCONFIG(TAG, "Start Initialize");
+  this->init_display_(); 
+}
 bool WaveshareEPaper7P5InBV3::wait_until_idle_() {
   if (this->busy_pin_ == nullptr) {
     return true;
@@ -2184,7 +2187,7 @@ bool WaveshareEPaper7P5InBV3::wait_until_idle_() {
 };
 void WaveshareEPaper7P5InBV3::init_display_() {
   //ESP_LOGI(TAG, "Start init xoxo");
-  ESP_LOGCONFIG(TAG, "Setting up display xoxo");
+  ESP_LOGCONFIG(TAG, "Start init_display");
   //LOG_UPDATE_INTERVAL(this);
   this->reset_();
 
@@ -2292,77 +2295,79 @@ void WaveshareEPaper7P5InBV3::init_display_() {
   // this->command(0x24);  // LUTBB
   // for (count = 0; count < 42; count++)
   //   this->data(lut_bb_7_i_n5_v2[count]);
-
+  ESP_LOGCONFIG(TAG, "End init_display");
 };
 void HOT WaveshareEPaper7P5InBV3::display() {
-  this->init_display_();
+  ESP_LOGCONFIG(TAG, "Start Display");
+  //this->init_display_();
 
-  //do fast init
-  // this->reset_();
-  // // COMMAND POWER SETTING
-  // this->command(0x00);
-  // this->data(0x0F);
+  do fast init
+  this->reset_();
+  // COMMAND POWER SETTING
+  this->command(0x00);
+  this->data(0x0F);
   
-  // this->data(0x04);
-  // delay(100);
-  // this->wait_until_idle_();
+  this->data(0x04);
+  delay(100);
+  this->wait_until_idle_();
   
-  // // Booster Setting
-  // this->command(0x06); //Booster Soft Start 
-  // this->data(0x27);
-  // this->data(0x27);
-  // this->data(0x18);
-  // this->data(0x17);
+  // Booster Setting
+  this->command(0x06); //Booster Soft Start 
+  this->data(0x27);
+  this->data(0x27);
+  this->data(0x18);
+  this->data(0x17);
 
   
-  // this->command(0xE0);
-  // this->data(0x02);
-  // this->data(0xE5);
-  // this->data(0x5A); 
+  this->command(0xE0);
+  this->data(0x02);
+  this->data(0xE5);
+  this->data(0x5A); 
   
-  // // COMMAND VCOM AND DATA INTERVAL SETTING
-  // this->command(0x50);
-  // this->data(0x11);
-  // this->data(0x07);
+  // COMMAND VCOM AND DATA INTERVAL SETTING
+  this->command(0x50);
+  this->data(0x11);
+  this->data(0x07);
  
   //do fast init edn
   
   uint32_t buf_len = this->get_buffer_length_();
 
-  // // fill with color white
-  // this->command(0x10);
-  // for (uint32_t i = 0; i < buf_len; i++) {
-  //   this->data(0x00);
-  // }
+  // fill with color white
+  this->command(0x10);
+  for (uint32_t i = 0; i < buf_len; i++) {
+    this->data(0x00);
+  }
 
-  // this->command(0x13);  // Start Transmission
-  // for (uint32_t i = 0; i < buf_len; i++) {
-  //    this->data(0xFF);
-  // }
-
-  // //Turn on display
-  // this->command(0x12);  // Display Refresh
-  // delay(10);           // NOLINT
-  // this->wait_until_idle_();
-  // //
-  
-
-  // this->command(0x10);
-  // for (uint32_t i = 0; i < buf_len; i++) {
-  //   this->data(~this->buffer_[i]);
-  // }
-
-  // this->command(0x13);  // Start Transmission
-  // for (uint32_t i = 0; i < buf_len; i++) {
-  //    this->data(0xFF);
-  // }
+  this->command(0x13);  // Start Transmission
+  for (uint32_t i = 0; i < buf_len; i++) {
+     this->data(0xFF);
+  }
 
   //Turn on display
   this->command(0x12);  // Display Refresh
   delay(10);           // NOLINT
   this->wait_until_idle_();
   //
+  
 
+  this->command(0x10);
+  for (uint32_t i = 0; i < buf_len; i++) {
+    this->data(~this->buffer_[i]);
+  }
+
+  this->command(0x13);  // Start Transmission
+  for (uint32_t i = 0; i < buf_len; i++) {
+     this->data(0xFF);
+  }
+
+  ESP_LOGCONFIG(TAG, "Turn on display");
+  //Turn on display
+  this->command(0x12);  // Display Refresh
+  delay(10);           // NOLINT
+  this->wait_until_idle_();
+  //
+  ESP_LOGCONFIG(TAG, "Go to deep sleep");
   this->deep_sleep();
 }
 int WaveshareEPaper7P5InBV3::get_width_internal() { return 800; }
