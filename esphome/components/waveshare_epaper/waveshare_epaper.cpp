@@ -2171,7 +2171,7 @@ bool WaveshareEPaper7P5InBV3::wait_until_idle_() {
 
   const uint32_t start = millis();
   while (this->busy_pin_->digital_read()) {
-    this->command(0x71);
+    //this->command(0x71);
     if (millis() - start > this->idle_timeout_()) {
       ESP_LOGI(TAG, "Timeout while displaying image!");
       return false;
@@ -2179,7 +2179,7 @@ bool WaveshareEPaper7P5InBV3::wait_until_idle_() {
     App.feed_wdt();
     delay(10);
   }
-  delay(200);  // NOLINT
+  delay(20);  // NOLINT
   return true;
 };
 void WaveshareEPaper7P5InBV3::init_display_() {
