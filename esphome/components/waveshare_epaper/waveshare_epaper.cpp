@@ -2296,17 +2296,16 @@ void HOT WaveshareEPaper7P5InBV3::display() {
 
   this->command(0x10);
   for (uint32_t i = 0; i < buf_len; i++) {
-    this->data(0xFF);
-  }
-
-  this->command(0x13);  // Start Transmission
-  delay(2);
-  for (uint32_t i = 0; i < buf_len; i++) {
     this->data(~this->buffer_[i]);
   }
 
+  this->command(0x13);  // Start Transmission
+  for (uint32_t i = 0; i < buf_len; i++) {
+     this->data(0xFF);
+  }
+
   this->command(0x12);  // Display Refresh
-  delay(100);           // NOLINT
+  delay(10);           // NOLINT
   this->wait_until_idle_();
   this->deep_sleep();
 }
