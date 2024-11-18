@@ -2307,7 +2307,7 @@ void HOT WaveshareEPaper7P5InBV3::display() {
   this->command(0x12);  // Display Refresh
   delay(10);           // NOLINT
   this->wait_until_idle_();
-  this->deep_sleep();
+  //this->deep_sleep();
 }
 int WaveshareEPaper7P5InBV3::get_width_internal() { return 800; }
 int WaveshareEPaper7P5InBV3::get_height_internal() { return 480; }
