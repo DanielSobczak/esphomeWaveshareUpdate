@@ -2184,6 +2184,7 @@ bool WaveshareEPaper7P5InBV3::wait_until_idle_() {
 };
 void WaveshareEPaper7P5InBV3::init_display_() {
   ESP_LOGCONFIG("xxx", "START init\r\n");
+  ESP_LOGI(TAG, "Start init xoxo");
   this->reset_();
 
   // COMMAND POWER SETTING
