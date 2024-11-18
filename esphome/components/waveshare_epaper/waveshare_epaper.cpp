@@ -2183,7 +2183,7 @@ bool WaveshareEPaper7P5InBV3::wait_until_idle_() {
   return true;
 };
 void WaveshareEPaper7P5InBV3::init_display_() {
-  //ESP_LOGI(TAG, "Start init xoxo");
+  ESP_LOGI(TAG, "Start init xoxo");
   //LOG_UPDATE_INTERVAL(this);
   this->reset_();
 
@@ -2294,35 +2294,35 @@ void WaveshareEPaper7P5InBV3::init_display_() {
 
 };
 void HOT WaveshareEPaper7P5InBV3::display() {
-  //this->init_display_();
+  this->init_display_();
 
   //do fast init
-  this->reset_();
-  // COMMAND POWER SETTING
-  this->command(0x00);
-  this->data(0x0F);
+  // this->reset_();
+  // // COMMAND POWER SETTING
+  // this->command(0x00);
+  // this->data(0x0F);
   
-  this->data(0x04);
-  delay(100);
-  this->wait_until_idle_();
+  // this->data(0x04);
+  // delay(100);
+  // this->wait_until_idle_();
   
-  // Booster Setting
-  this->command(0x06); //Booster Soft Start 
-  this->data(0x27);
-  this->data(0x27);
-  this->data(0x18);
-  this->data(0x17);
+  // // Booster Setting
+  // this->command(0x06); //Booster Soft Start 
+  // this->data(0x27);
+  // this->data(0x27);
+  // this->data(0x18);
+  // this->data(0x17);
 
   
-  this->command(0xE0);
-  this->data(0x02);
-  this->data(0xE5);
-  this->data(0x5A); 
+  // this->command(0xE0);
+  // this->data(0x02);
+  // this->data(0xE5);
+  // this->data(0x5A); 
   
-  // COMMAND VCOM AND DATA INTERVAL SETTING
-  this->command(0x50);
-  this->data(0x11);
-  this->data(0x07);
+  // // COMMAND VCOM AND DATA INTERVAL SETTING
+  // this->command(0x50);
+  // this->data(0x11);
+  // this->data(0x07);
  
   //do fast init edn
   
