@@ -2183,7 +2183,6 @@ bool WaveshareEPaper7P5InBV3::wait_until_idle_() {
   return true;
 };
 void WaveshareEPaper7P5InBV3::init_display_() {
-  ESP_LOGCONFIG("xxx", "START init\r\n");
   ESP_LOGI(TAG, "Start init xoxo");
   this->reset_();
 
@@ -2291,10 +2290,9 @@ void WaveshareEPaper7P5InBV3::init_display_() {
   // this->command(0x24);  // LUTBB
   // for (count = 0; count < 42; count++)
   //   this->data(lut_bb_7_i_n5_v2[count]);
-  ESP_LOGCONFIG("xxx", "END init\r\n");
+
 };
 void HOT WaveshareEPaper7P5InBV3::display() {
-  ESP_LOGCONFIG("xxx", "START display\r\n");
   //this->init_display_();
 
   //do fast init
@@ -2362,7 +2360,6 @@ void HOT WaveshareEPaper7P5InBV3::display() {
   this->wait_until_idle_();
   //
 
-  ESP_LOGCONFIG("xxx", "END display before deep sleep\r\n");
   this->deep_sleep();
 }
 int WaveshareEPaper7P5InBV3::get_width_internal() { return 800; }
