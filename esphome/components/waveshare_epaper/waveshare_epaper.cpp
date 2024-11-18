@@ -2183,7 +2183,8 @@ bool WaveshareEPaper7P5InBV3::wait_until_idle_() {
   return true;
 };
 void WaveshareEPaper7P5InBV3::init_display_() {
-  ESP_LOGI(TAG, "Start init xoxo");
+  //ESP_LOGI(TAG, "Start init xoxo");
+  ESP_LOGCONFIG(TAG, "Setting up display xoxo");
   //LOG_UPDATE_INTERVAL(this);
   this->reset_();
 
