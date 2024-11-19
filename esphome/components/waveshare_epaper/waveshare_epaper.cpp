@@ -2345,9 +2345,9 @@ void HOT WaveshareEPaper7P5InBV3::display() {
   // }
 
   //Turn on display
-  this->command(0x12);  // Display Refresh
-  delay(10);           // NOLINT
-  this->wait_until_idle_();
+  // this->command(0x12);  // Display Refresh
+  // delay(10);           // NOLINT
+  // this->wait_until_idle_();
   //
   
 
