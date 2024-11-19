@@ -2174,7 +2174,7 @@ bool WaveshareEPaper7P5InBV3::wait_until_idle_() {
 
   const uint32_t start = millis();
   while (this->busy_pin_->digital_read()) {
-    //this->command(0x71);
+    this->command(0x71); // is this needed?
     if (millis() - start > this->idle_timeout_()) {
       ESP_LOGI(TAG, "Timeout while displaying image!");
       return false;
