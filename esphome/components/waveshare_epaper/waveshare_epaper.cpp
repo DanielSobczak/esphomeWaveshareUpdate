@@ -2301,7 +2301,7 @@ void HOT WaveshareEPaper7P5InBV3::display() {
   ESP_LOGCONFIG(TAG, "Start Display");
   //this->init_display_();
 
-  do fast init
+  //do fast init
   this->reset_();
   // COMMAND POWER SETTING
   this->command(0x00);
