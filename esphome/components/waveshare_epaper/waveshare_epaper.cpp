@@ -2257,7 +2257,7 @@ void WaveshareEPaper7P5InBV3::configure() {
   this->data(0x00);
   // COMMAND VCOM AND DATA INTERVAL SETTING
   this->command(0x50);
-  this->data(0x31);
+  this->data(0x11);
   this->data(0x07);
   // COMMAND TCON SETTING
   this->command(0x60);
