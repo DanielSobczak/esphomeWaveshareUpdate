@@ -2320,7 +2320,7 @@ void WaveshareEPaper7P5InBV3::clear_screen() {
 void WaveshareEPaper7P5InBV3::display_refresh() {
   ESP_LOGCONFIG(TAG, "Start display_refresh");
   this->command(0x12);  // Display Refresh
-  delay(10);           // NOLINT
+  delay(100);           // NOLINT
   this->wait_until_idle_();
 };
 
