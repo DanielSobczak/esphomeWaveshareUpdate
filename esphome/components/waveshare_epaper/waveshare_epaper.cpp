@@ -2176,7 +2176,7 @@ bool WaveshareEPaper7P5InBV3::wait_until_idle_() {
   while (this->busy_pin_->digital_read()) {
     //this->command(0x71); // is this needed?
     App.feed_wdt();
-    delay(10);
+    delay(100);
   }
    ESP_LOGCONFIG(TAG, "not idle anymore!");
   delay(20);  // NOLINT
@@ -2317,7 +2317,7 @@ void WaveshareEPaper7P5InBV3::clear_screen() {
 void WaveshareEPaper7P5InBV3::display_refresh() {
   ESP_LOGCONFIG(TAG, "Start display_refresh");
   this->command(0x12);  // Display Refresh
-  delay(100);           // NOLINT
+  delay(1000);           // NOLINT
   this->wait_until_idle_();
 };
 
