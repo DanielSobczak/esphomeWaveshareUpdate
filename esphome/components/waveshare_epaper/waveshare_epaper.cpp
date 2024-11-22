@@ -2300,13 +2300,13 @@ void WaveshareEPaper7P5InBV3::clear_screen() {
   ESP_LOGCONFIG(TAG, "Start clear_screen");
   uint32_t buf_len = this->get_buffer_length_();
   //fill with color white
-  // this->command(0x10); // Start Transmission BW or OLD
-  // for (uint32_t i = 0; i < buf_len; i++) {
-  //   this->data(0xFF);
-  // }
-  this->command(0x13); // Start Transmission BW or OLD
+  this->command(0x10); // Start Transmission BW or OLD
   for (uint32_t i = 0; i < buf_len; i++) {
     this->data(0xFF);
+  }
+  this->command(0x13); // Start Transmission BW or OLD
+  for (uint32_t i = 0; i < buf_len; i++) {
+    this->data(0x00);
   }
   this->display_refresh();
 
