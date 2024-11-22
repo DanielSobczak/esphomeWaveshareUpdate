@@ -2197,21 +2197,21 @@ void WaveshareEPaper7P5InBV3::init_display_() {
 void HOT WaveshareEPaper7P5InBV3::display() {
   ESP_LOGCONFIG(TAG, "Start Display");
   this->init_display_();
-  this->clear_screen();
+  //this->clear_screen();
   uint32_t buf_len = this->get_buffer_length_();
   
-  //black write
-  // this->command(0x10);
-  // for (uint32_t i = 0; i < buf_len; i++) {
-  //   this->data(this->buffer_[i]);
-  //   //this->data(0xFF);
-  // }
+  //black write or old
+  this->command(0x10);
+  for (uint32_t i = 0; i < buf_len; i++) {
+    this->data(this->buffer_[i]);
+    //this->data(0xFF);
+  }
 
-  //red write
+  //red write or new
   this->command(0x13);  // Start Transmission
   for (uint32_t i = 0; i < buf_len; i++) {
-     //this->data(0x00);
-     this->data(this->buffer_[i]);
+     this->data(0x00);
+     //this->data(this->buffer_[i]);
   }
 
   this->display_refresh();
@@ -2244,7 +2244,7 @@ void WaveshareEPaper7P5InBV3::configure() {
   
   // COMMAND PANEL SETTING
   this->command(0x00);
-  this->data(0x1F);  // KW-3f   KWR-2F BWROTP 0f BWOTP 1f
+  this->data(0x0F);  // KW-3f   KWR-2F BWROTP 0f BWOTP 1f
 
   // COMMAND RESOLUTION SETTING
   this->command(0x61);
