@@ -605,15 +605,15 @@ class WaveshareEPaper7P5InBV3 : public WaveshareEPaper {
   void clear_screen();
 
   // Just after reset, set the power mode and power the driver on
-  void power_on() = 0;
+  void power_on();
 
   // Send all the configuration required to display
-  void configure() = 0;
+  void configure();
 
-  void fast_init_display() = 0;
+  void fast_init_display();
 
 
-  void display_refresh() = 0;
+  void display_refresh();
 
  protected:
 
