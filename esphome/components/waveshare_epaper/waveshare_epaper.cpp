@@ -2257,14 +2257,14 @@ void WaveshareEPaper7P5InBV3::configure() {
   this->data(0x00);
   // COMMAND VCOM AND DATA INTERVAL SETTING
   this->command(0x50);
-  this->data(0x11);
+  this->data(0x10);
   this->data(0x07);
   // COMMAND TCON SETTING
   this->command(0x60);
   this->data(0x22);
   // PLL CONTROL(PLL) (R30 H )
-  this->command(0x30);
-  this->data(0x0B);
+  // this->command(0x30);
+  // this->data(0x0B);
 }
 
 void WaveshareEPaper7P5InBV3::fast_init_display() {
