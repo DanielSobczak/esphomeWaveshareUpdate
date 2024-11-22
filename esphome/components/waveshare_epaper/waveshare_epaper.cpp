@@ -2174,12 +2174,11 @@ bool WaveshareEPaper7P5InBV3::wait_until_idle_() {
 
   const uint32_t start = millis();
   while (this->busy_pin_->digital_read()) {
-    //this->command(0x71); // is this needed?
+    this->command(0x71); // is this needed?
     App.feed_wdt();
-    delay(100);
   }
    ESP_LOGCONFIG(TAG, "not idle anymore!");
-  delay(20);  // NOLINT
+  delay(200);  // NOLINT
   return true;
 };
 
