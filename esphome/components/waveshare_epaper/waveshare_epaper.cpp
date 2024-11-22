@@ -2256,12 +2256,12 @@ void WaveshareEPaper7P5InBV3::configure() {
   // this->command(0x15);
   // this->data(0x00);
   // COMMAND VCOM AND DATA INTERVAL SETTING
-  this->command(0x50);
-  this->data(0x11); //was 31
-  this->data(0x07);
+  // this->command(0x50);
+  // this->data(0x11); //was 31
+  // this->data(0x07);
   // COMMAND TCON SETTING
-  this->command(0x60);
-  this->data(0x22);
+  // this->command(0x60);
+  // this->data(0x22);
   // PLL CONTROL(PLL) (R30 H )
   // this->command(0x30);
   // this->data(0x06);
