@@ -2232,10 +2232,10 @@ void WaveshareEPaper7P5InBV3::power_on() {
 void WaveshareEPaper7P5InBV3::configure() {
   // Booster Setting
   this->command(0x06); //Booster Soft Start 
-  this->data(0x17);
-  this->data(0x17);
-  this->data(0x17);
-  this->data(0x17);
+  this->data(0x17); // BT_PHA[7:6], BT_PHA[5:3], BT_PHA[2:0]
+  this->data(0x17); // BT_PHB[7:6], BT_PHB[5:3], BT_PHB[2:0]
+  this->data(0x28); //              BT_PHC1[5:3], BT_PHC1[2:0]
+  this->data(0x17); // PHC2EN       BT_PHC2[5:3], BT_PHC2[2:0]
 
   // POWER ON
   this->command(0x04);
@@ -2257,7 +2257,7 @@ void WaveshareEPaper7P5InBV3::configure() {
   this->data(0x00);
   // COMMAND VCOM AND DATA INTERVAL SETTING
   this->command(0x50);
-  this->data(0x11); //was 31
+  this->data(0x31);
   this->data(0x07);
   // COMMAND TCON SETTING
   this->command(0x60);
