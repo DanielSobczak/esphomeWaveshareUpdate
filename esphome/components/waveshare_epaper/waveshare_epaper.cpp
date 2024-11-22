@@ -2299,35 +2299,35 @@ void WaveshareEPaper7P5InBV3::init_display_() {
 };
 void HOT WaveshareEPaper7P5InBV3::display() {
   ESP_LOGCONFIG(TAG, "Start Display");
-  this->init_display_();
+  //this->init_display_();
 
   //do fast init
-  // this->reset_();
-  // // COMMAND POWER SETTING
-  // this->command(0x00);
-  // this->data(0x0F);
+  this->reset_();
+  // COMMAND POWER SETTING
+  this->command(0x10);
+  this->data(0x0F);
   
-  // this->data(0x04);
-  // delay(100);
-  // this->wait_until_idle_();
+  this->data(0x04);
+  delay(100);
+  this->wait_until_idle_();
   
-  // // Booster Setting
-  // this->command(0x06); //Booster Soft Start 
-  // this->data(0x27);
-  // this->data(0x27);
-  // this->data(0x18);
-  // this->data(0x17);
+  // Booster Setting
+  this->command(0x06); //Booster Soft Start 
+  this->data(0x27);
+  this->data(0x27);
+  this->data(0x18);
+  this->data(0x17);
 
   
-  // this->command(0xE0);
-  // this->data(0x02);
-  // this->data(0xE5);
-  // this->data(0x5A); 
+  this->command(0xE0);
+  this->data(0x02);
+  this->data(0xE5);
+  this->data(0x5A); 
   
-  // // COMMAND VCOM AND DATA INTERVAL SETTING
-  // this->command(0x50);
-  // this->data(0x11);
-  // this->data(0x07);
+  // COMMAND VCOM AND DATA INTERVAL SETTING
+  this->command(0x50);
+  this->data(0x11);
+  this->data(0x07);
  
   //do fast init edn
   
@@ -2357,11 +2357,11 @@ void HOT WaveshareEPaper7P5InBV3::display() {
     //this->data(0xFF);
   }
 
-  this->command(0x13);  // Start Transmission
-  for (uint32_t i = 0; i < buf_len; i++) {
-     this->data(0x00);
-     //this->data(~this->buffer_[i]);
-  }
+  // this->command(0x13);  // Start Transmission
+  // for (uint32_t i = 0; i < buf_len; i++) {
+  //    this->data(0x00);
+  //    //this->data(~this->buffer_[i]);
+  // }
 
   ESP_LOGCONFIG(TAG, "Turn on display");
   //Turn on display
