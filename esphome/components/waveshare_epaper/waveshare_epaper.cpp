@@ -2310,12 +2310,12 @@ void WaveshareEPaper7P5InBV3::clear_screen() {
   //fill with color white
   this->command(0x10); // Start Transmission BW
   for (uint32_t i = 0; i < buf_len; i++) {
-    this->data(0x00);
+    this->data(0xFF);
   }
 
   this->command(0x13);  // Start Transmission red
   for (uint32_t i = 0; i < buf_len; i++) {
-     this->data(0xFF);
+     this->data(0x00);
   }
 };
 
