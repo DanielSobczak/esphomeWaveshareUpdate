@@ -2223,29 +2223,18 @@ void WaveshareEPaper7P5InBV3::power_on() {
   // COMMAND POWER SETTING
   this->command(0x01);
 
-  this->data(0x07);
-  this->data(0x07);  // //VGH=20V,VGL=-20V
-  this->data(0x3F);  //VDH=15V
-  this->data(0x3F);  //VDL=-15V
+  this->data(0x07); //BD_EN and VSR_EN,VS_EN, VG_EN
+  this->data(0x17); // VCOM_SLEW = 1 and VG_LVL = 20V
+  this->data(0x3A);  //VDH=14V
+  this->data(0x3A);  //VDL=-14V
 }
 
 void WaveshareEPaper7P5InBV3::configure() {
- // 1-0=11: internal power
-  //this->data(0x07);
-  //this->data(0x17);  // VGH&VGL
-  //this->data(0x3F);  // VSH
-  //this->data(0x26);  // VSL
-  //this->data(0x11);  // VSHR
-
-  // VCOM DC Setting
-  //this->command(0x82);
-  //this->data(0x24);  // VCOM
-
   // Booster Setting
   this->command(0x06); //Booster Soft Start 
   this->data(0x17);
   this->data(0x17);
-  this->data(0x28);
+  this->data(0x17);
   this->data(0x17);
 
   // POWER ON
@@ -2263,9 +2252,9 @@ void WaveshareEPaper7P5InBV3::configure() {
   this->data(0x20);
   this->data(0x01);  // gate 480
   this->data(0xE0);
-  // COMMAND ...?
-  this->command(0x15);
-  this->data(0x00);
+  // // COMMAND ...?
+  // this->command(0x15);
+  // this->data(0x00);
   // COMMAND VCOM AND DATA INTERVAL SETTING
   this->command(0x50);
   this->data(0x31);
