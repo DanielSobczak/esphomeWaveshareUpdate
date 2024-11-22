@@ -2197,7 +2197,7 @@ void WaveshareEPaper7P5InBV3::init_display_() {
 void HOT WaveshareEPaper7P5InBV3::display() {
   ESP_LOGCONFIG(TAG, "Start Display");
   this->init_display_();
-  this->clear_screen();
+  //this->clear_screen();
   uint32_t buf_len = this->get_buffer_length_();
   
   // //black write or old
