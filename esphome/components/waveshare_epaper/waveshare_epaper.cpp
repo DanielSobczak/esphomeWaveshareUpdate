@@ -2224,9 +2224,9 @@ void WaveshareEPaper7P5InBV3::power_on() {
   this->command(0x01);
 
   this->data(0x07); //BD_EN and VSR_EN,VS_EN, VG_EN
-  this->data(0x17); // VCOM_SLEW = 1 and VG_LVL = 20V
-  this->data(0x3A);  //VDH=14V
-  this->data(0x3A);  //VDL=-14V
+  this->data(0x07); // VCOM_SLEW = 1 and VG_LVL = 20V
+  this->data(0x3F);  //VDH=14V
+  this->data(0x3F);  //VDL=-14V
 }
 
 void WaveshareEPaper7P5InBV3::configure() {
