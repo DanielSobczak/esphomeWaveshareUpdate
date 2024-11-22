@@ -2219,7 +2219,7 @@ void HOT WaveshareEPaper7P5InBV3::display() {
   this->deep_sleep();
 }
 
-void WaveshareEPaper7P5InBV3::power_on() {
+void HOT WaveshareEPaper7P5InBV3::power_on() {
   // COMMAND POWER SETTING
   this->command(0x01);
 
@@ -2229,7 +2229,7 @@ void WaveshareEPaper7P5InBV3::power_on() {
   this->data(0x3F);  //VDL=-15V
 }
 
-void WaveshareEPaper7P5InBV3::configure() {
+void HOT WaveshareEPaper7P5InBV3::configure() {
  // 1-0=11: internal power
   //this->data(0x07);
   //this->data(0x17);  // VGH&VGL
@@ -2275,7 +2275,7 @@ void WaveshareEPaper7P5InBV3::configure() {
   this->data(0x22);
 }
 
-void WaveshareEPaper7P5InBV3::fast_init_display_() {
+void HOT WaveshareEPaper7P5InBV3::fast_init_display_() {
   this->reset_();
   // COMMAND POWER SETTING
   this->command(0x00);
@@ -2304,7 +2304,7 @@ void WaveshareEPaper7P5InBV3::fast_init_display_() {
   this->data(0x07);
 };
 
-void WaveshareEPaper7P5InBV3::clear_screen() {
+void HOT WaveshareEPaper7P5InBV3::clear_screen() {
   ESP_LOGCONFIG(TAG, "Start clear_screen");
   //fill with color white
   this->command(0x10); // Start Transmission BW
@@ -2318,7 +2318,7 @@ void WaveshareEPaper7P5InBV3::clear_screen() {
   }
 };
 
-void WaveshareEPaper7P5InBV3::display_refresh() {
+void HOT WaveshareEPaper7P5InBV3::display_refresh() {
   ESP_LOGCONFIG(TAG, "Start display_refresh");
   this->command(0x12);  // Display Refresh
   delay(10);           // NOLINT
