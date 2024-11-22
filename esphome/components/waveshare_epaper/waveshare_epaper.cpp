@@ -2180,9 +2180,9 @@ bool WaveshareEPaper7P5InBV3::wait_until_idle_() {
       return false;
     }
     App.feed_wdt();
-    delay(10);
+    delay(100);
   }
-  delay(20);  // NOLINT
+  delay(200);  // NOLINT
   return true;
 };
 
@@ -2197,15 +2197,15 @@ void WaveshareEPaper7P5InBV3::init_display_() {
 void HOT WaveshareEPaper7P5InBV3::display() {
   ESP_LOGCONFIG(TAG, "Start Display");
   this->init_display_();
-  //this->clear_screen();
+  this->clear_screen();
   uint32_t buf_len = this->get_buffer_length_();
   
-  // //black write or old
-  this->command(0x10);
-  for (uint32_t i = 0; i < buf_len; i++) {
-    //this->data(this->buffer_[i]);
-    this->data(0x00);
-  }
+  // // //black write or old
+  // this->command(0x10);
+  // for (uint32_t i = 0; i < buf_len; i++) {
+  //   //this->data(this->buffer_[i]);
+  //   this->data(0x00);
+  // }
 
   //red write or new
   this->command(0x13);  // Start Transmission
@@ -2300,13 +2300,13 @@ void WaveshareEPaper7P5InBV3::clear_screen() {
   ESP_LOGCONFIG(TAG, "Start clear_screen");
   uint32_t buf_len = this->get_buffer_length_();
 
-  // this->command(0x10); // Start Transmission BW or OLD
-  // for (uint32_t i = 0; i < buf_len; i++) {
-  //   this->data(0x00); //black
-  // }
+  this->command(0x10); // Start Transmission BW or OLD
+  for (uint32_t i = 0; i < buf_len; i++) {
+    this->data(0x00); //black
+  }
   this->command(0x13); // Start Transmission BW or OLD
   for (uint32_t i = 0; i < buf_len; i++) {
-    this->data(0xFF); //white
+    this->data(0x00); 
   }
   this->display_refresh();
 
