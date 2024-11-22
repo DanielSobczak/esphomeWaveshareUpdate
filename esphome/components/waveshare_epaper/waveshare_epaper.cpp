@@ -2273,6 +2273,9 @@ void WaveshareEPaper7P5InBV3::configure() {
   // COMMAND TCON SETTING
   this->command(0x60);
   this->data(0x22);
+  // PLL CONTROL(PLL) (R30 H )
+  this->command(0x30);
+  this->data(0x06);
 }
 
 void WaveshareEPaper7P5InBV3::fast_init_display() {
@@ -2318,11 +2321,11 @@ void WaveshareEPaper7P5InBV3::clear_screen() {
   }
   this->display_refresh();
 
-  this->command(0x13);  // Start Transmission RED or NEW
-  for (uint32_t i = 0; i < buf_len; i++) {
-     this->data(0x00);
-  }
-  this->display_refresh();
+  // this->command(0x13);  // Start Transmission RED or NEW
+  // for (uint32_t i = 0; i < buf_len; i++) {
+  //    this->data(0x00);
+  // }
+  // this->display_refresh();
 };
 
 void WaveshareEPaper7P5InBV3::display_refresh() {
