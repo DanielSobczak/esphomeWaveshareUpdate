@@ -2234,7 +2234,7 @@ void WaveshareEPaper7P5InBV3::configure() {
   this->command(0x06); //Booster Soft Start 
   this->data(0x17);
   this->data(0x17);
-  this->data(0x28);
+  this->data(0x17);
   this->data(0x17);
 
   // POWER ON
