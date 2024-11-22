@@ -2304,8 +2304,8 @@ void HOT WaveshareEPaper7P5InBV3::display() {
   //do fast init
   this->reset_();
   // COMMAND POWER SETTING
-  this->command(0x10);
-  this->data(0x0F);
+  this->command(0x00);
+  this->data(0x1F);
   
   this->data(0x04);
   delay(100);
