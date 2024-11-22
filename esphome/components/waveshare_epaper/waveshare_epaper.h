@@ -613,7 +613,6 @@ class WaveshareEPaper7P5InBV3 : public WaveshareEPaper {
 
   virtual void fast_init_display() = 0;
 
-  virtual void clear_screen() = 0;
 
   virtual void display_refresh() = 0;
 
