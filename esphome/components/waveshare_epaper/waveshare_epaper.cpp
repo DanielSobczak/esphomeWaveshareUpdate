@@ -2186,6 +2186,39 @@ bool WaveshareEPaper7P5InBV3::wait_until_idle_() {
   return true;
 };
 
+void WaveshareEPaper7P5InBV3::init_display_() {
+  ESP_LOGCONFIG(TAG, "Start init_display");
+  this->reset_();
+  this->power_on();
+  this->configure();
+  ESP_LOGCONFIG(TAG, "End init_display");
+};
+
+void HOT WaveshareEPaper7P5InBV3::display() {
+  ESP_LOGCONFIG(TAG, "Start Display");
+  this->init_display_();
+  this->clear_screen();
+  uint32_t buf_len = this->get_buffer_length_();
+  
+  //black write
+  // this->command(0x10);
+  // for (uint32_t i = 0; i < buf_len; i++) {
+  //   this->data(this->buffer_[i]);
+  //   //this->data(0xFF);
+  // }
+
+  //red write
+  this->command(0x13);  // Start Transmission
+  for (uint32_t i = 0; i < buf_len; i++) {
+     //this->data(0x00);
+     this->data(this->buffer_[i]);
+  }
+
+  this->display_refresh();
+  ESP_LOGCONFIG(TAG, "Go to deep sleep");
+  this->deep_sleep();
+}
+
 void WaveshareEPaper7P5InBV3::power_on() {
   // COMMAND POWER SETTING
   this->command(0x01);
@@ -2290,41 +2323,8 @@ void WaveshareEPaper7P5InBV3::display_refresh() {
   this->command(0x12);  // Display Refresh
   delay(10);           // NOLINT
   this->wait_until_idle_();
-  
 };
 
-void WaveshareEPaper7P5InBV3::init_display_() {
-  ESP_LOGCONFIG(TAG, "Start init_display");
-  this->reset_();
-  this->power_on();
-  this->configure();
-  ESP_LOGCONFIG(TAG, "End init_display");
-};
-
-void HOT WaveshareEPaper7P5InBV3::display() {
-  ESP_LOGCONFIG(TAG, "Start Display");
-  this->init_display_();
-  this->clear_screen();
-  uint32_t buf_len = this->get_buffer_length_();
-  
-  //black write
-  // this->command(0x10);
-  // for (uint32_t i = 0; i < buf_len; i++) {
-  //   this->data(this->buffer_[i]);
-  //   //this->data(0xFF);
-  // }
-
-  //red write
-  this->command(0x13);  // Start Transmission
-  for (uint32_t i = 0; i < buf_len; i++) {
-     //this->data(0x00);
-     this->data(this->buffer_[i]);
-  }
-
-  this->display_refresh();
-  ESP_LOGCONFIG(TAG, "Go to deep sleep");
-  this->deep_sleep();
-}
 int WaveshareEPaper7P5InBV3::get_width_internal() { return 800; }
 int WaveshareEPaper7P5InBV3::get_height_internal() { return 480; }
 void WaveshareEPaper7P5InBV3::dump_config() {
