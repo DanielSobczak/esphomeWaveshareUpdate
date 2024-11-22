@@ -2201,11 +2201,11 @@ void HOT WaveshareEPaper7P5InBV3::display() {
   uint32_t buf_len = this->get_buffer_length_();
   
   // //black write or old
-  // this->command(0x10);
-  // for (uint32_t i = 0; i < buf_len; i++) {
-  //   this->data(this->buffer_[i]);
-  //   //this->data(0xFF);
-  // }
+  this->command(0x10);
+  for (uint32_t i = 0; i < buf_len; i++) {
+    //this->data(this->buffer_[i]);
+    this->data(0x00);
+  }
 
   //red write or new
   this->command(0x13);  // Start Transmission
