@@ -4,8 +4,595 @@
 #include "esphome/core/helpers.h"
 #include <cinttypes>
 
+#define UC8151Dx_LUTC_SIZE (60)
+#define UC8151Dx_LUTWW_SIZE (36)
+#define UC8151Dx_LUTR_SIZE (60)
+#define UC8151Dx_LUTW_SIZE (60)
+#define UC8151Dx_LUTB_SIZE (60)
+
 namespace esphome {
 namespace waveshare_epaper {
+enum UC8151Dx_VcomLutCombinations_e {  
+    Vc_0000 = (0x00), // All DC (for Vcom) or Ground (for gates) voltage levels.
+    Vc_H000 = (0x01),
+    Vc_L000 = (0x02),
+    Vc_F000 = (0x03),
+    Vc_0H00 = (0x04),
+    Vc_HH00 = (0x05),
+    Vc_LH00 = (0x06),
+    Vc_FH00 = (0x07),
+    Vc_0L00 = (0x08),
+    Vc_HL00 = (0x09),
+    Vc_LL00 = (0x0A),
+    Vc_FL00 = (0x0B),
+    Vc_0F00 = (0x0C),
+    Vc_HF00 = (0x0D),
+    Vc_LF00 = (0x0E),
+    Vc_FF00 = (0x0F),
+    Vc_00H0 = (0x10),
+    Vc_H0H0 = (0x11),
+    Vc_L0H0 = (0x12),
+    Vc_F0H0 = (0x13),
+    Vc_0HH0 = (0x14),
+    Vc_HHH0 = (0x15),
+    Vc_LHH0 = (0x16),
+    Vc_FHH0 = (0x17),
+    Vc_0LH0 = (0x18),
+    Vc_HLH0 = (0x19),
+    Vc_LLH0 = (0x1A),
+    Vc_FLH0 = (0x1B),
+    Vc_0FH0 = (0x1C),
+    Vc_HFH0 = (0x1D),
+    Vc_LFH0 = (0x1E),
+    Vc_FFH0 = (0x1F),
+    Vc_00L0 = (0x20),
+    Vc_H0L0 = (0x21),
+    Vc_L0L0 = (0x22),
+    Vc_F0L0 = (0x23),
+    Vc_0HL0 = (0x24),
+    Vc_HHL0 = (0x25),
+    Vc_LHL0 = (0x26),
+    Vc_FHL0 = (0x27),
+    Vc_0LL0 = (0x28),
+    Vc_HLL0 = (0x29),
+    Vc_LLL0 = (0x2A),
+    Vc_FLL0 = (0x2B),
+    Vc_0FL0 = (0x2C),
+    Vc_HFL0 = (0x2D),
+    Vc_LFL0 = (0x2E),
+    Vc_FFL0 = (0x2F),
+    Vc_00F0 = (0x30),
+    Vc_H0F0 = (0x31),
+    Vc_L0F0 = (0x32),
+    Vc_F0F0 = (0x33),
+    Vc_0HF0 = (0x34),
+    Vc_HHF0 = (0x35),
+    Vc_LHF0 = (0x36),
+    Vc_FHF0 = (0x37),
+    Vc_0LF0 = (0x38),
+    Vc_HLF0 = (0x39),
+    Vc_LLF0 = (0x3A),
+    Vc_FLF0 = (0x3B),
+    Vc_0FF0 = (0x3C),
+    Vc_HFF0 = (0x3D),
+    Vc_LFF0 = (0x3E),
+    Vc_FFF0 = (0x3F),
+    Vc_000H = (0x40),
+    Vc_H00H = (0x41),
+    Vc_L00H = (0x42),
+    Vc_F00H = (0x43),
+    Vc_0H0H = (0x44),
+    Vc_HH0H = (0x45),
+    Vc_LH0H = (0x46),
+    Vc_FH0H = (0x47),
+    Vc_0L0H = (0x48),
+    Vc_HL0H = (0x49),
+    Vc_LL0H = (0x4A),
+    Vc_FL0H = (0x4B),
+    Vc_0F0H = (0x4C),
+    Vc_HF0H = (0x4D),
+    Vc_LF0H = (0x4E),
+    Vc_FF0H = (0x4F),
+    Vc_00HH = (0x50),
+    Vc_H0HH = (0x51),
+    Vc_L0HH = (0x52),
+    Vc_F0HH = (0x53),
+    Vc_0HHH = (0x54),
+    Vc_HHHH = (0x55), // All VDH levels
+    Vc_LHHH = (0x56),
+    Vc_FHHH = (0x57),
+    Vc_0LHH = (0x58),
+    Vc_HLHH = (0x59),
+    Vc_LLHH = (0x5A),
+    Vc_FLHH = (0x5B),
+    Vc_0FHH = (0x5C),
+    Vc_HFHH = (0x5D),
+    Vc_LFHH = (0x5E),
+    Vc_FFHH = (0x5F),
+    Vc_00LH = (0x60),
+    Vc_H0LH = (0x61),
+    Vc_L0LH = (0x62),
+    Vc_F0LH = (0x63),
+    Vc_0HLH = (0x64),
+    Vc_HHLH = (0x65),
+    Vc_LHLH = (0x66),
+    Vc_FHLH = (0x67),
+    Vc_0LLH = (0x68),
+    Vc_HLLH = (0x69),
+    Vc_LLLH = (0x6A),
+    Vc_FLLH = (0x6B),
+    Vc_0FLH = (0x6C),
+    Vc_HFLH = (0x6D),
+    Vc_LFLH = (0x6E),
+    Vc_FFLH = (0x6F),
+    Vc_00FH = (0x70),
+    Vc_H0FH = (0x71),
+    Vc_L0FH = (0x72),
+    Vc_F0FH = (0x73),
+    Vc_0HFH = (0x74),
+    Vc_HHFH = (0x75),
+    Vc_LHFH = (0x76),
+    Vc_FHFH = (0x77),
+    Vc_0LFH = (0x78),
+    Vc_HLFH = (0x79),
+    Vc_LLFH = (0x7A),
+    Vc_FLFH = (0x7B),
+    Vc_0FFH = (0x7C),
+    Vc_HFFH = (0x7D),
+    Vc_LFFH = (0x7E),
+    Vc_FFFH = (0x7F),
+    Vc_000L = (0x80),
+    Vc_H00L = (0x81),
+    Vc_L00L = (0x82),
+    Vc_F00L = (0x83),
+    Vc_0H0L = (0x84),
+    Vc_HH0L = (0x85),
+    Vc_LH0L = (0x86),
+    Vc_FH0L = (0x87),
+    Vc_0L0L = (0x88),
+    Vc_HL0L = (0x89),
+    Vc_LL0L = (0x8A),
+    Vc_FL0L = (0x8B),
+    Vc_0F0L = (0x8C),
+    Vc_HF0L = (0x8D),
+    Vc_LF0L = (0x8E),
+    Vc_FF0L = (0x8F),
+    Vc_00HL = (0x90),
+    Vc_H0HL = (0x91),
+    Vc_L0HL = (0x92),
+    Vc_F0HL = (0x93),
+    Vc_0HHL = (0x94),
+    Vc_HHHL = (0x95),
+    Vc_LHHL = (0x96),
+    Vc_FHHL = (0x97),
+    Vc_0LHL = (0x98),
+    Vc_HLHL = (0x99),
+    Vc_LLHL = (0x9A),
+    Vc_FLHL = (0x9B),
+    Vc_0FHL = (0x9C),
+    Vc_HFHL = (0x9D),
+    Vc_LFHL = (0x9E),
+    Vc_FFHL = (0x9F),
+    Vc_00LL = (0xA0),
+    Vc_H0LL = (0xA1),
+    Vc_L0LL = (0xA2),
+    Vc_F0LL = (0xA3),
+    Vc_0HLL = (0xA4),
+    Vc_HHLL = (0xA5),
+    Vc_LHLL = (0xA6),
+    Vc_FHLL = (0xA7),
+    Vc_0LLL = (0xA8),
+    Vc_HLLL = (0xA9),
+    Vc_LLLL = (0xAA), // All VDL levels
+    Vc_FLLL = (0xAB),
+    Vc_0FLL = (0xAC),
+    Vc_HFLL = (0xAD),
+    Vc_LFLL = (0xAE),
+    Vc_FFLL = (0xAF),
+    Vc_00FL = (0xB0),
+    Vc_H0FL = (0xB1),
+    Vc_L0FL = (0xB2),
+    Vc_F0FL = (0xB3),
+    Vc_0HFL = (0xB4),
+    Vc_HHFL = (0xB5),
+    Vc_LHFL = (0xB6),
+    Vc_FHFL = (0xB7),
+    Vc_0LFL = (0xB8),
+    Vc_HLFL = (0xB9),
+    Vc_LLFL = (0xBA),
+    Vc_FLFL = (0xBB),
+    Vc_0FFL = (0xBC),
+    Vc_HFFL = (0xBD),
+    Vc_LFFL = (0xBE),
+    Vc_FFFL = (0xBF),
+    Vc_000F = (0xC0),
+    Vc_H00F = (0xC1),
+    Vc_L00F = (0xC2),
+    Vc_F00F = (0xC3),
+    Vc_0H0F = (0xC4),
+    Vc_HH0F = (0xC5),
+    Vc_LH0F = (0xC6),
+    Vc_FH0F = (0xC7),
+    Vc_0L0F = (0xC8),
+    Vc_HL0F = (0xC9),
+    Vc_LL0F = (0xCA),
+    Vc_FL0F = (0xCB),
+    Vc_0F0F = (0xCC),
+    Vc_HF0F = (0xCD),
+    Vc_LF0F = (0xCE),
+    Vc_FF0F = (0xCF),
+    Vc_00HF = (0xD0),
+    Vc_H0HF = (0xD1),
+    Vc_L0HF = (0xD2),
+    Vc_F0HF = (0xD3),
+    Vc_0HHF = (0xD4),
+    Vc_HHHF = (0xD5),
+    Vc_LHHF = (0xD6),
+    Vc_FHHF = (0xD7),
+    Vc_0LHF = (0xD8),
+    Vc_HLHF = (0xD9),
+    Vc_LLHF = (0xDA),
+    Vc_FLHF = (0xDB),
+    Vc_0FHF = (0xDC),
+    Vc_HFHF = (0xDD),
+    Vc_LFHF = (0xDE),
+    Vc_FFHF = (0xDF),
+    Vc_00LF = (0xE0),
+    Vc_H0LF = (0xE1),
+    Vc_L0LF = (0xE2),
+    Vc_F0LF = (0xE3),
+    Vc_0HLF = (0xE4),
+    Vc_HHLF = (0xE5),
+    Vc_LHLF = (0xE6),
+    Vc_FHLF = (0xE7),
+    Vc_0LLF = (0xE8),
+    Vc_HLLF = (0xE9),
+    Vc_LLLF = (0xEA),
+    Vc_FLLF = (0xEB),
+    Vc_0FLF = (0xEC),
+    Vc_HFLF = (0xED),
+    Vc_LFLF = (0xEE),
+    Vc_FFLF = (0xEF),
+    Vc_00FF = (0xF0),
+    Vc_H0FF = (0xF1),
+    Vc_L0FF = (0xF2),
+    Vc_F0FF = (0xF3),
+    Vc_0HFF = (0xF4),
+    Vc_HHFF = (0xF5),
+    Vc_LHFF = (0xF6),
+    Vc_FHFF = (0xF7),
+    Vc_0LFF = (0xF8),
+    Vc_HLFF = (0xF9),
+    Vc_LLFF = (0xFA),
+    Vc_FLFF = (0xFB),
+    Vc_0FFF = (0xFC),
+    Vc_HFFF = (0xFD),
+    Vc_LFFF = (0xFE),
+    Vc_FFFF = (0xFF), // All floating (for Vcom) or VDHR (for gates).                  
+};
+
+
+enum UC8151Dx_GatesLutCombinations_e { // '0' is Gnd, 'L' is strong negative VGL rail, 'H' is strong positive VGH rail, and 'h' is weak positive (VDHR, fact. default at approx +3V)
+    Gt_0000 = 0x00, // All grounds
+    Gt_H000 = 0x01,
+    Gt_L000 = 0x02,
+    Gt_h000 = 0x03,
+    Gt_0H00 = 0x04,
+    Gt_HH00 = 0x05,
+    Gt_LH00 = 0x06,
+    Gt_hH00 = 0x07,
+    Gt_0L00 = 0x08,
+    Gt_HL00 = 0x09,
+    Gt_LL00 = 0x0A,
+    Gt_hL00 = 0x0B,
+    Gt_0h00 = 0x0C,
+    Gt_Hh00 = 0x0D,
+    Gt_Lh00 = 0x0E,
+    Gt_hh00 = 0x0F,
+    Gt_00H0 = 0x10,
+    Gt_H0H0 = 0x11,
+    Gt_L0H0 = 0x12,
+    Gt_h0H0 = 0x13,
+    Gt_0HH0 = 0x14,
+    Gt_HHH0 = 0x15,
+    Gt_LHH0 = 0x16,
+    Gt_hHH0 = 0x17,
+    Gt_0LH0 = 0x18,
+    Gt_HLH0 = 0x19,
+    Gt_LLH0 = 0x1A,
+    Gt_hLH0 = 0x1B,
+    Gt_0hH0 = 0x1C,
+    Gt_HhH0 = 0x1D,
+    Gt_LhH0 = 0x1E,
+    Gt_hhH0 = 0x1F,
+    Gt_00L0 = 0x20,
+    Gt_H0L0 = 0x21,
+    Gt_L0L0 = 0x22,
+    Gt_h0L0 = 0x23,
+    Gt_0HL0 = 0x24,
+    Gt_HHL0 = 0x25,
+    Gt_LHL0 = 0x26,
+    Gt_hHL0 = 0x27,
+    Gt_0LL0 = 0x28,
+    Gt_HLL0 = 0x29,
+    Gt_LLL0 = 0x2A,
+    Gt_hLL0 = 0x2B,
+    Gt_0hL0 = 0x2C,
+    Gt_HhL0 = 0x2D,
+    Gt_LhL0 = 0x2E,
+    Gt_hhL0 = 0x2F,
+    Gt_00h0 = 0x30,
+    Gt_H0h0 = 0x31,
+    Gt_L0h0 = 0x32,
+    Gt_h0h0 = 0x33,
+    Gt_0Hh0 = 0x34,
+    Gt_HHh0 = 0x35,
+    Gt_LHh0 = 0x36,
+    Gt_hHh0 = 0x37,
+    Gt_0Lh0 = 0x38,
+    Gt_HLh0 = 0x39,
+    Gt_LLh0 = 0x3A,
+    Gt_hLh0 = 0x3B,
+    Gt_0hh0 = 0x3C,
+    Gt_Hhh0 = 0x3D,
+    Gt_Lhh0 = 0x3E,
+    Gt_hhh0 = 0x3F,
+    Gt_000H = 0x40,
+    Gt_H00H = 0x41,
+    Gt_L00H = 0x42,
+    Gt_h00H = 0x43,
+    Gt_0H0H = 0x44,
+    Gt_HH0H = 0x45,
+    Gt_LH0H = 0x46,
+    Gt_hH0H = 0x47,
+    Gt_0L0H = 0x48,
+    Gt_HL0H = 0x49,
+    Gt_LL0H = 0x4A,
+    Gt_hL0H = 0x4B,
+    Gt_0h0H = 0x4C,
+    Gt_Hh0H = 0x4D,
+    Gt_Lh0H = 0x4E,
+    Gt_hh0H = 0x4F,
+    Gt_00HH = 0x50,
+    Gt_H0HH = 0x51,
+    Gt_L0HH = 0x52,
+    Gt_h0HH = 0x53,
+    Gt_0HHH = 0x54,
+    Gt_HHHH = 0x55, // All strong positive (up to +20V)
+    Gt_LHHH = 0x56,
+    Gt_hHHH = 0x57,
+    Gt_0LHH = 0x58,
+    Gt_HLHH = 0x59,
+    Gt_LLHH = 0x5A,
+    Gt_hLHH = 0x5B,
+    Gt_0hHH = 0x5C,
+    Gt_HhHH = 0x5D,
+    Gt_LhHH = 0x5E,
+    Gt_hhHH = 0x5F,
+    Gt_00LH = 0x60,
+    Gt_H0LH = 0x61,
+    Gt_L0LH = 0x62,
+    Gt_h0LH = 0x63,
+    Gt_0HLH = 0x64,
+    Gt_HHLH = 0x65,
+    Gt_LHLH = 0x66,
+    Gt_hHLH = 0x67,
+    Gt_0LLH = 0x68,
+    Gt_HLLH = 0x69,
+    Gt_LLLH = 0x6A,
+    Gt_hLLH = 0x6B,
+    Gt_0hLH = 0x6C,
+    Gt_HhLH = 0x6D,
+    Gt_LhLH = 0x6E,
+    Gt_hhLH = 0x6F,
+    Gt_00hH = 0x70,
+    Gt_H0hH = 0x71,
+    Gt_L0hH = 0x72,
+    Gt_h0hH = 0x73,
+    Gt_0HhH = 0x74,
+    Gt_HHhH = 0x75,
+    Gt_LHhH = 0x76,
+    Gt_hHhH = 0x77,
+    Gt_0LhH = 0x78,
+    Gt_HLhH = 0x79,
+    Gt_LLhH = 0x7A,
+    Gt_hLhH = 0x7B,
+    Gt_0hhH = 0x7C,
+    Gt_HhhH = 0x7D,
+    Gt_LhhH = 0x7E,
+    Gt_hhhH = 0x7F,
+    Gt_000L = 0x80,
+    Gt_H00L = 0x81,
+    Gt_L00L = 0x82,
+    Gt_h00L = 0x83,
+    Gt_0H0L = 0x84,
+    Gt_HH0L = 0x85,
+    Gt_LH0L = 0x86,
+    Gt_hH0L = 0x87,
+    Gt_0L0L = 0x88,
+    Gt_HL0L = 0x89,
+    Gt_LL0L = 0x8A,
+    Gt_hL0L = 0x8B,
+    Gt_0h0L = 0x8C,
+    Gt_Hh0L = 0x8D,
+    Gt_Lh0L = 0x8E,
+    Gt_hh0L = 0x8F,
+    Gt_00HL = 0x90,
+    Gt_H0HL = 0x91,
+    Gt_L0HL = 0x92,
+    Gt_h0HL = 0x93,
+    Gt_0HHL = 0x94,
+    Gt_HHHL = 0x95,
+    Gt_LHHL = 0x96,
+    Gt_hHHL = 0x97,
+    Gt_0LHL = 0x98,
+    Gt_HLHL = 0x99,
+    Gt_LLHL = 0x9A,
+    Gt_hLHL = 0x9B,
+    Gt_0hHL = 0x9C,
+    Gt_HhHL = 0x9D,
+    Gt_LhHL = 0x9E,
+    Gt_hhHL = 0x9F,
+    Gt_00LL = 0xA0,
+    Gt_H0LL = 0xA1,
+    Gt_L0LL = 0xA2,
+    Gt_h0LL = 0xA3,
+    Gt_0HLL = 0xA4,
+    Gt_HHLL = 0xA5,
+    Gt_LHLL = 0xA6,
+    Gt_hHLL = 0xA7,
+    Gt_0LLL = 0xA8,
+    Gt_HLLL = 0xA9,
+    Gt_LLLL = 0xAA,  // All strong negative (down to -20V)
+    Gt_hLLL = 0xAB,
+    Gt_0hLL = 0xAC,
+    Gt_HhLL = 0xAD,
+    Gt_LhLL = 0xAE,
+    Gt_hhLL = 0xAF,
+    Gt_00hL = 0xB0,
+    Gt_H0hL = 0xB1,
+    Gt_L0hL = 0xB2,
+    Gt_h0hL = 0xB3,
+    Gt_0HhL = 0xB4,
+    Gt_HHhL = 0xB5,
+    Gt_LHhL = 0xB6,
+    Gt_hHhL = 0xB7,
+    Gt_0LhL = 0xB8,
+    Gt_HLhL = 0xB9,
+    Gt_LLhL = 0xBA,
+    Gt_hLhL = 0xBB,
+    Gt_0hhL = 0xBC,
+    Gt_HhhL = 0xBD,
+    Gt_LhhL = 0xBE,
+    Gt_hhhL = 0xBF,
+    Gt_000h = 0xC0,
+    Gt_H00h = 0xC1,
+    Gt_L00h = 0xC2,
+    Gt_h00h = 0xC3,
+    Gt_0H0h = 0xC4,
+    Gt_HH0h = 0xC5,
+    Gt_LH0h = 0xC6,
+    Gt_hH0h = 0xC7,
+    Gt_0L0h = 0xC8,
+    Gt_HL0h = 0xC9,
+    Gt_LL0h = 0xCA,
+    Gt_hL0h = 0xCB,
+    Gt_0h0h = 0xCC,
+    Gt_Hh0h = 0xCD,
+    Gt_Lh0h = 0xCE,
+    Gt_hh0h = 0xCF,
+    Gt_00Hh = 0xD0,
+    Gt_H0Hh = 0xD1,
+    Gt_L0Hh = 0xD2,
+    Gt_h0Hh = 0xD3,
+    Gt_0HHh = 0xD4,
+    Gt_HHHh = 0xD5,
+    Gt_LHHh = 0xD6,
+    Gt_hHHh = 0xD7,
+    Gt_0LHh = 0xD8,
+    Gt_HLHh = 0xD9,
+    Gt_LLHh = 0xDA,
+    Gt_hLHh = 0xDB,
+    Gt_0hHh = 0xDC,
+    Gt_HhHh = 0xDD,
+    Gt_LhHh = 0xDE,
+    Gt_hhHh = 0xDF,
+    Gt_00Lh = 0xE0,
+    Gt_H0Lh = 0xE1,
+    Gt_L0Lh = 0xE2,
+    Gt_h0Lh = 0xE3,
+    Gt_0HLh = 0xE4,
+    Gt_HHLh = 0xE5,
+    Gt_LHLh = 0xE6,
+    Gt_hHLh = 0xE7,
+    Gt_0LLh = 0xE8,
+    Gt_HLLh = 0xE9,
+    Gt_LLLh = 0xEA,
+    Gt_hLLh = 0xEB,
+    Gt_0hLh = 0xEC,
+    Gt_HhLh = 0xED,
+    Gt_LhLh = 0xEE,
+    Gt_hhLh = 0xEF,
+    Gt_00hh = 0xF0,
+    Gt_H0hh = 0xF1,
+    Gt_L0hh = 0xF2,
+    Gt_h0hh = 0xF3,
+    Gt_0Hhh = 0xF4,
+    Gt_HHhh = 0xF5,
+    Gt_LHhh = 0xF6,
+    Gt_hHhh = 0xF7,
+    Gt_0Lhh = 0xF8,
+    Gt_HLhh = 0xF9,
+    Gt_LLhh = 0xFA,
+    Gt_hLhh = 0xFB,
+    Gt_0hhh = 0xFC,
+    Gt_Hhhh = 0xFD,
+    Gt_Lhhh = 0xFE,
+    Gt_hhhh = 0xFF, // All weak positive, (around +3V)
+};
+
+// All Vcoms level MUST stay 0 if you plan on using partial refresh (cuz' it is polarizing the WHOLE front ITO plane and WOULD make unselected area fade away).
+const unsigned char _test01_lut_vcom_data[UC8151Dx_LUTC_SIZE] = {
+    Vc_0000,        1,        2,        1,        2,        5, // Grp0 Shake "suck" pigments (leaning to white) and end with white. 
+    Vc_0000,       55,       32,        0,        0,        1, // Grp1 long white, long black, ends on contrasted black
+    Vc_0000,        1,       32,        1,        8,        2, // Grp2 Bring red up: short fast sink of particles, long slow rise, repeat twice, last rise shorter (for a brighter final red), do it 2 times. 
+    Vc_0000,       40,        0,        0,        0,        1, // Grp3 Discharge ITO
+    Vc_0000,        0,        0,        0,        0,        0, // Grp4 
+    Vc_0000,        0,        0,        0,        0,        0, // Grp5 
+    Vc_0000,        0,        0,        0,        0,        0, // Grp6 
+    Vc_0000,        0,        0,        0,        0,        0, // Grp4 
+    Vc_0000,        0,        0,        0,        0,        0, // Grp8 
+    Vc_0000,        0,        0,        0,        0,        0, // Grp9 
+};
+
+const unsigned char _test01_lut_ww_data[UC8151Dx_LUTWW_SIZE] = {   /*                                                                    */
+   Gt_0000,        0,        0,        0,        0,        0,      /*                                                                    */
+   Gt_0000,        0,        0,        0,        0,        0,      /*                                                                    */
+   Gt_0000,        0,        0,        0,        0,        0,      /*  LUTWW isn't used in BWR mode, only in BW mode. Thus not used here */
+   Gt_0000,        0,        0,        0,        0,        0,      /*                                                                    */
+   Gt_0000,        0,        0,        0,        0,        0,      /*                                                                    */
+   Gt_0000,        0,        0,        0,        0,        0       /*                                                                    */
+};
+
+const unsigned char _test01_lut_r_data[UC8151Dx_LUTR_SIZE] = {
+   Gt_LHLH,        1,        2,        1,        2,        5,
+   Gt_0000,       32,       32,        0,        0,        1, // even more white
+   Gt_hLhL,        1,       32,        1,       32,        2, // Bring red up: short fast sink of particles, long slow rise, repeat twice, 7 times.
+   Gt_0000,       40,        0,        0,        0,        1, // Discharge gates
+   Gt_0000,        0,        0,        0,        0,        0,
+   Gt_0000,        0,        0,        0,        0,        0,
+   Gt_0000,        0,        0,        0,        0,        0,
+   Gt_0000,        0,        0,        0,        0,        0,
+   Gt_0000,        0,        0,        0,        0,        0,
+   Gt_0000,        0,        0,        0,        0,        0
+};
+
+const unsigned char _test01_lut_w_data[UC8151Dx_LUTW_SIZE] = {
+   Gt_LHLH,        1,        2,        1,        2,        5, // 
+   Gt_0000,       32,       32,        0,        0,        1, // 
+   Gt_0000,        0,        0,        0,        0,        0, // red phase, keep silent
+   Gt_0000,       40,        0,        0,        0,        1, // Discharge gates
+   Gt_0000,        0,        0,        0,        0,        0,
+   Gt_0000,        0,        0,        0,        0,        0,
+   Gt_0000,        0,        0,        0,        0,        0,
+   Gt_0000,        0,        0,        0,        0,        0,
+   Gt_0000,        0,        0,        0,        0,        0,
+   Gt_0000,        0,        0,        0,        0,        0
+};
+
+const unsigned char _test01_lut_b_data[UC8151Dx_LUTB_SIZE] = {
+   Gt_LHLH,        1,        2,        1,        2,        5,
+   Gt_00HL,       55,       32,        0,        0,        1, // strong white, strong black
+   Gt_0000,        0,        0,        0,        0,        0,
+   Gt_0000,       40,        0,        0,        0,        1, // Discharge gates
+   Gt_0000,        0,        0,        0,        0,        0,
+   Gt_0000,        0,        0,        0,        0,        0,
+   Gt_0000,        0,        0,        0,        0,        0,
+   Gt_0000,        0,        0,        0,        0,        0,
+   Gt_0000,        0,        0,        0,        0,        0,
+   Gt_0000,        0,        0,        0,        0,        0
+};
+
 
 static const char *const TAG = "waveshare_epaper";
 
@@ -2238,52 +2825,29 @@ void WaveshareEPaper7P5InBV3::init_display_() {
   this->data(0x00);
   this->data(0x00);
 
-  uint8_t lut_vcom_7_i_n5_v2[] = {
-      0x0, 0xF, 0xF, 0x0, 0x0, 0x1, 0x0, 0xF, 0x1, 0xF, 0x1, 0x2, 0x0, 0xF, 0xF, 0x0, 0x0, 0x1, 0x0, 0x0, 0x0,
-      0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
-  };
-
-  uint8_t lut_ww_7_i_n5_v2[] = {
-      0x10, 0xF, 0xF, 0x0, 0x0, 0x1, 0x84, 0xF, 0x1, 0xF, 0x1, 0x2, 0x20, 0xF, 0xF, 0x0, 0x0, 0x1, 0x0, 0x0, 0x0,
-      0x0,  0x0, 0x0, 0x0, 0x0, 0x0, 0x0,  0x0, 0x0, 0x0, 0x0, 0x0, 0x0,  0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
-  };
-
-  uint8_t lut_bw_7_i_n5_v2[] = {
-      0x10, 0xF, 0xF, 0x0, 0x0, 0x1, 0x84, 0xF, 0x1, 0xF, 0x1, 0x2, 0x20, 0xF, 0xF, 0x0, 0x0, 0x1, 0x0, 0x0, 0x0,
-      0x0,  0x0, 0x0, 0x0, 0x0, 0x0, 0x0,  0x0, 0x0, 0x0, 0x0, 0x0, 0x0,  0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
-  };
-
-  uint8_t lut_wb_7_i_n5_v2[] = {
-      0x80, 0xF, 0xF, 0x0, 0x0, 0x3, 0x84, 0xF, 0x1, 0xF, 0x1, 0x4, 0x40, 0xF, 0xF, 0x0, 0x0, 0x3, 0x0, 0x0, 0x0,
-      0x0,  0x0, 0x0, 0x0, 0x0, 0x0, 0x0,  0x0, 0x0, 0x0, 0x0, 0x0, 0x0,  0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
-  };
-
-  uint8_t lut_bb_7_i_n5_v2[] = {
-      0x80, 0xF, 0xF, 0x0, 0x0, 0x1, 0x84, 0xF, 0x1, 0xF, 0x1, 0x2, 0x40, 0xF, 0xF, 0x0, 0x0, 0x1, 0x0, 0x0, 0x0,
-      0x0,  0x0, 0x0, 0x0, 0x0, 0x0, 0x0,  0x0, 0x0, 0x0, 0x0, 0x0, 0x0,  0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
-  };
 
   uint8_t count;
-  this->command(0x20);  // VCOM
-  for (count = 0; count < 42; count++)
-    this->data(lut_vcom_7_i_n5_v2[count]);
+  this->command(0x20);  // LUTC (VCOM)
+  for (count = 0; count < UC8151Dx_LUTC_SIZE; count++)
+    this->data(_test01_lut_vcom_data[count]);
 
-  this->command(0x21);  // LUTBW
-  for (count = 0; count < 42; count++)
-    this->data(lut_ww_7_i_n5_v2[count]);
+  this->command(0x21);  // LUTWW (white to white)
+  for (count = 0; count < UC8151Dx_LUTWW_SIZE; count++)
+    this->data(_test01_lut_ww_data[count]);
 
-  this->command(0x22);  // LUTBW
-  for (count = 0; count < 42; count++)
-    this->data(lut_bw_7_i_n5_v2[count]);
+  this->command(0x22);  // LUTR (white to white)
+  for (count = 0; count < UC8151Dx_LUTR_SIZE; count++)
+    this->data(_test01_lut_r_data[count]);
 
-  this->command(0x23);  // LUTWB
-  for (count = 0; count < 42; count++)
-    this->data(lut_wb_7_i_n5_v2[count]);
+  this->command(0x23);  // LUTW (white to black)
+  for (count = 0; count < UC8151Dx_LUTW_SIZE; count++)
+    this->data(_test01_lut_w_data[count]);
 
-  this->command(0x24);  // LUTBB
-  for (count = 0; count < 42; count++)
-    this->data(lut_bb_7_i_n5_v2[count]);
+  this->command(0x24);  // LUTBK (black to black)
+  for (count = 0; count < UC8151Dx_LUTB_SIZE; count++)
+    this->data(_test01_lut_b_data[count]);
 };
+
 void HOT WaveshareEPaper7P5InBV3::display() {
   this->init_display_();
   uint32_t buf_len = this->get_buffer_length_();
