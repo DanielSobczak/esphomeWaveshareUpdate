@@ -565,7 +565,7 @@ const unsigned char _test01_lut_r_data[UC8151Dx_LUTR_SIZE] = {
    Gt_0000,        0,        0,        0,        0,        0,
    Gt_0000,        0,        0,        0,        0,        0,
    Gt_0000,        0,        0,        0,        0,        0
-},
+};
 
 const unsigned char _test01_lut_w_data[UC8151Dx_LUTW_SIZE] = {
    Gt_LHLH,        1,        2,        1,        2,        5, // 
