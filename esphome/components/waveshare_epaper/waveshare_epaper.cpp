@@ -533,9 +533,9 @@ enum UC8151Dx_GatesLutCombinations_e { // '0' is Gnd, 'L' is strong negative VGL
 
 // All Vcoms level MUST stay 0 if you plan on using partial refresh (cuz' it is polarizing the WHOLE front ITO plane and WOULD make unselected area fade away).
 const unsigned char _test01_lut_vcom_data[UC8151Dx_LUTC_SIZE] = {
-    Vc_0000,        1,        2,        1,        2,        5, // Grp0 Shake "suck" pigments (leaning to white) and end with white. 
-    Vc_0000,       75,       75,        0,        0,        1, // Grp1 long white, long black, ends on contrasted black
-    Vc_0000,        1,       32,        1,        8,        9, // Grp2 Bring red up: short fast sink of particles, long slow rise, repeat twice, last rise shorter (for a brighter final red), do it 2 times. 
+    Vc_0000,        1,        2,        1,        2,        5, // Grp0 Shake "stuck" pigments (leaning to white) and end with white. 
+    Vc_0000,       75,       75,        0,        0,        1, // Grp1 150 frames, LUTB sets it at 75 white, 75 black , ends on black.
+    Vc_0000,       30,        0,        0,       30,       20, // Grp2 Bring red up: short fast sink of particles, long slow rise, repeat twice, last rise shorter (for a brighter final red), do it 2 times. 
     Vc_0000,       40,        0,        0,        0,        1, // Grp3 Discharge ITO
     Vc_0000,        0,        0,        0,        0,        0, // Grp4 
     Vc_0000,        0,        0,        0,        0,        0, // Grp5 
@@ -556,8 +556,8 @@ const unsigned char _test01_lut_ww_data[UC8151Dx_LUTWW_SIZE] = {   /*           
 
 const unsigned char _test01_lut_r_data[UC8151Dx_LUTR_SIZE] = {
    Gt_LHLH,        1,        2,        1,        2,        5,
-   Gt_0000,       32,       32,        0,        0,        1, // even more white
-   Gt_hLhL,        1,       32,        1,       32,        2, // Bring red up: short fast sink of particles, long slow rise, repeat twice, 7 times.
+   Gt_00Lh,       75,       75,        0,        0,        1, // half time RED, but even more white, end on white 
+   Gt_L00h,       30,        0,        0,       30,       20, // Bring red up: long slow rise then fast sink of particles, repeat twice, 20 times.
    Gt_0000,       40,        0,        0,        0,        1, // Discharge gates
    Gt_0000,        0,        0,        0,        0,        0,
    Gt_0000,        0,        0,        0,        0,        0,
@@ -565,11 +565,11 @@ const unsigned char _test01_lut_r_data[UC8151Dx_LUTR_SIZE] = {
    Gt_0000,        0,        0,        0,        0,        0,
    Gt_0000,        0,        0,        0,        0,        0,
    Gt_0000,        0,        0,        0,        0,        0
-};
+},
 
 const unsigned char _test01_lut_w_data[UC8151Dx_LUTW_SIZE] = {
    Gt_LHLH,        1,        2,        1,        2,        5, // 
-   Gt_0000,       32,       32,        0,        0,        1, // 
+   Gt_00LL,       75,       35,       40,        0,        1, // still 150 frames, but only polarized during the 1st 110 of them.
    Gt_0000,        0,        0,        0,        0,        0, // red phase, keep silent
    Gt_0000,       40,        0,        0,        0,        1, // Discharge gates
    Gt_0000,        0,        0,        0,        0,        0,
@@ -582,8 +582,8 @@ const unsigned char _test01_lut_w_data[UC8151Dx_LUTW_SIZE] = {
 
 const unsigned char _test01_lut_b_data[UC8151Dx_LUTB_SIZE] = {
    Gt_LHLH,        1,        2,        1,        2,        5,
-   Gt_00HL,       55,       32,        0,        0,        1, // strong white, strong black
-   Gt_0000,        0,        0,        0,        0,        0,
+   Gt_00HL,       75,       75,        0,        0,        1, // strong white, strong black
+   Gt_0000,        0,        0,        0,        0,        0, // red phase, keep silent
    Gt_0000,       40,        0,        0,        0,        1, // Discharge gates
    Gt_0000,        0,        0,        0,        0,        0,
    Gt_0000,        0,        0,        0,        0,        0,
