@@ -534,8 +534,8 @@ enum UC8151Dx_GatesLutCombinations_e { // '0' is Gnd, 'L' is strong negative VGL
 // All Vcoms level MUST stay 0 if you plan on using partial refresh (cuz' it is polarizing the WHOLE front ITO plane and WOULD make unselected area fade away).
 const unsigned char _test01_lut_vcom_data[UC8151Dx_LUTC_SIZE] = {
     Vc_0000,        1,        2,        1,        2,        5, // Grp0 Shake "suck" pigments (leaning to white) and end with white. 
-    Vc_0000,       55,       32,        0,        0,        1, // Grp1 long white, long black, ends on contrasted black
-    Vc_0000,        1,       32,        1,        8,        2, // Grp2 Bring red up: short fast sink of particles, long slow rise, repeat twice, last rise shorter (for a brighter final red), do it 2 times. 
+    Vc_0000,       75,       75,        0,        0,        1, // Grp1 long white, long black, ends on contrasted black
+    Vc_0000,        1,       32,        1,        8,        9, // Grp2 Bring red up: short fast sink of particles, long slow rise, repeat twice, last rise shorter (for a brighter final red), do it 2 times. 
     Vc_0000,       40,        0,        0,        0,        1, // Grp3 Discharge ITO
     Vc_0000,        0,        0,        0,        0,        0, // Grp4 
     Vc_0000,        0,        0,        0,        0,        0, // Grp5 
