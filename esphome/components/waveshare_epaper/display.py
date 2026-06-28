@@ -174,7 +174,20 @@ MODELS = {
     "13.3in-k": ("b", WaveshareEPaper13P3InK),
 }
 
+CONF_FAST_REFRESH = "fast_refresh"
+
 RESET_PIN_REQUIRED_MODELS = ("2.13inv2", "2.13in-ttgo-b74")
+FAST_REFRESH_MODELS = ("7.50in-bv3",)
+
+
+def validate_fast_refresh_only_bv3(config):
+    if (fast_refresh := config.get(CONF_FAST_REFRESH)) is not None and fast_refresh:
+        if config[CONF_MODEL] not in FAST_REFRESH_MODELS:
+            raise cv.Invalid(
+                "The 'fast_refresh' option is only available for models: "
+                + ", ".join(FAST_REFRESH_MODELS)
+            )
+    return config
 
 
 def validate_full_update_every_only_types_ac(value):
@@ -213,12 +226,14 @@ CONFIG_SCHEMA = cv.All(
                 cv.positive_time_period_milliseconds,
                 cv.Range(max=core.TimePeriod(milliseconds=500)),
             ),
+            cv.Optional(CONF_FAST_REFRESH, default=False): cv.boolean,
         }
     )
     .extend(cv.polling_component_schema("1s"))
     .extend(spi.spi_device_schema()),
     validate_full_update_every_only_types_ac,
     validate_reset_pin_required,
+    validate_fast_refresh_only_bv3,
     cv.has_at_most_one_key(CONF_PAGES, CONF_LAMBDA),
 )
 
@@ -259,3 +274,5 @@ async def to_code(config):
         cg.add(var.set_full_update_every(config[CONF_FULL_UPDATE_EVERY]))
     if CONF_RESET_DURATION in config:
         cg.add(var.set_reset_duration(config[CONF_RESET_DURATION]))
+    if config[CONF_MODEL] in FAST_REFRESH_MODELS:
+        cg.add(var.set_fast_refresh(config[CONF_FAST_REFRESH]))
