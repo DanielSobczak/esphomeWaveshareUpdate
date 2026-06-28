@@ -177,10 +177,10 @@ MODELS = {
 CONF_FAST_REFRESH = "fast_refresh"
 
 RESET_PIN_REQUIRED_MODELS = ("2.13inv2", "2.13in-ttgo-b74")
-FAST_REFRESH_MODELS = ("7.50in-bv3",)
+FAST_REFRESH_MODELS = ("7.50in-bv3", "7.50in-bv3-bwr")
 
 
-def validate_fast_refresh_only_bv3(config):
+def validate_fast_refresh_supported_models(config):
     if (fast_refresh := config.get(CONF_FAST_REFRESH)) is not None and fast_refresh:
         if config[CONF_MODEL] not in FAST_REFRESH_MODELS:
             raise cv.Invalid(
@@ -233,7 +233,7 @@ CONFIG_SCHEMA = cv.All(
     .extend(spi.spi_device_schema()),
     validate_full_update_every_only_types_ac,
     validate_reset_pin_required,
-    validate_fast_refresh_only_bv3,
+    validate_fast_refresh_supported_models,
     cv.has_at_most_one_key(CONF_PAGES, CONF_LAMBDA),
 )
 

@@ -1,0 +1,575 @@
+esphome:
+  name: eink-screen
+  friendly_name: eink-screen
+  on_boot:
+    priority: -100.0  # Run after all components and sensors are initialized
+    then:
+      - wait_until:
+          condition:
+            lambda: 'return id(data_updated) == true;'
+          timeout: 25s
+      - delay: 3s  # Let remaining sensors arrive after the first one triggers
+      - script.execute: update_screen
+      - deep_sleep.enter: deep_sleep_control
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+external_components:
+  - source:
+      type: git
+      url: http://github.com/DanielSobczak/esphomeWaveshareUpdate
+      #ref: v0.1
+      ref: new_lut_from_dev
+    components: [ waveshare_epaper ]
+    refresh: 0s
+
+  # - source: github://pr#7751
+  #   components: [ waveshare_epaper ]
+
+#with state machine
+  # - source: github://pr#5886
+  #   components: [ waveshare_epaper ]
+
+# use twisterss' repo:
+  # - source:
+  #     type: git
+  #     url:  https://github.com/twisterss/esphome-dev.git
+  #     ref: waveshare-red-black
+  #   components: [ waveshare_epaper ]
+
+
+# Enable logging
+logger:
+  level: WARN
+#   level: VERBOSE
+#   logs:
+#     waveshare_epaper.component: VERBOSE
+
+# debug:
+#   update_interval: 15s
+
+
+# Enable Home Assistant API
+api:
+ encryption:
+   key: "EkMh1DUXge2Rd219xAQtBd7fNRFGZugqCAqIglDNBb4="
+
+ota:
+  - platform: esphome
+    password: "fe58efc8dcd23934d3c7c97f08e4a04e"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  power_save_mode: light
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Eink-Screen Fallback Hotspot"
+    password: "jlC6aYrlHNNZ"
+
+
+###########
+deep_sleep:
+  id: deep_sleep_control
+  sleep_duration: 5min
+  run_duration: 60s  # Safety fallback: force sleep after 60s even if display update didn't complete
+
+globals:
+  - id: data_updated
+    type: bool
+    restore_value: no
+    initial_value: "false"
+  - id: recorded_display_refresh
+    type: int
+    restore_value: yes
+    initial_value: '0'
+ ## Data from Home Assistant
+  # - platform: homeassistant
+  #   id: temperature
+  #   entity_id: sensor.e_ink_display_data
+  #   attribute: home_temperature
+  #   on_value:
+  #     then:
+  #       - lambda: "id(data_updated) = true;"
+
+  # - platform: homeassistant
+  #   id: max_temp
+  #   entity_id: sensor.e_ink_display_data
+  #   attribute: home_temperature_max
+  #   on_value:
+  #     then:
+  #       - lambda: "id(data_updated) = true;"  
+
+sensor:
+  - platform: homeassistant
+    id: temp_goscinny
+    entity_id: sensor.guest_room_thermometer_temperature_6
+    on_value:
+      then:
+        - lambda: "id(data_updated) = true;"
+        - logger.log:
+            format: "XXX: %d"
+            args: [ 'id(temp_goscinny)' ]
+  - platform: homeassistant
+    id: temp_balkon
+    entity_id: sensor.xiaomi_lywsd03mmc_z_temperature_4
+    on_value:
+      then:
+        - lambda: "id(data_updated) = true;"
+  - platform: homeassistant
+    id: temp_salon
+    entity_id: sensor.xiaomi_lywsd03mmc_z_temperature
+    on_value:
+      then:
+        - lambda: "id(data_updated) = true;"
+  - platform: homeassistant
+    id: days_till
+    entity_id: sensor.days_till_christmas
+    on_value:
+      then:
+        - lambda: "id(data_updated) = true;"
+        - logger.log:
+            format: "Date left xxx : %d"
+            args: [ 'id(days_till)' ]
+#weather sensors
+  - platform: homeassistant
+    entity_id: weather.forecast_home
+    attribute: temperature
+    id: weather_temperature
+    on_value:
+      then:
+        - lambda: 'id(data_updated) = true;'
+
+  - platform: homeassistant
+    entity_id: sensor.weatherman_data
+    attribute: weather_temperature_0
+    id: weather_temperature_0
+    on_value:
+      then:
+        - lambda: 'id(data_updated) = true;'
+
+  - platform: homeassistant
+    entity_id: sensor.weatherman_data
+    attribute: weather_temperature_1
+    id: weather_temperature_1
+    on_value:
+      then:
+        - lambda: 'id(data_updated) = true;'
+
+  - platform: homeassistant
+    entity_id: sensor.weatherman_data
+    attribute: weather_temperature_2
+    id: weather_temperature_2
+    on_value:
+      then:
+        - lambda: 'id(data_updated) = true;'
+
+  - platform: homeassistant
+    entity_id: sensor.weatherman_data
+    attribute: weather_temperature_3
+    id: weather_temperature_3
+    on_value:
+      then:
+        - lambda: 'id(data_updated) = true;'
+
+text_sensor:
+  #weather related data
+  - platform: homeassistant
+    entity_id: weather.valhalla_hourly
+    id: weather_state
+    on_value:
+      then:
+        - lambda: 'id(data_updated) = true;'
+
+  - platform: homeassistant
+    entity_id: sensor.weatherman_data
+    attribute: weather_condition_now
+    id: weather_condition_now
+    on_value:
+      then:
+        - lambda: 'id(data_updated) = true;'
+  - platform: homeassistant
+    entity_id: sensor.weatherman_data
+    attribute: weather_condition_0
+    id: weather_condition_0
+    on_value:
+      then:
+        - lambda: 'id(data_updated) = true;'
+  - platform: homeassistant
+    entity_id: sensor.weatherman_data
+    attribute: weather_timestamp_0
+    id: weather_timestamp_0
+    on_value:
+      then:
+        - lambda: 'id(data_updated) = true;'
+  - platform: homeassistant
+    entity_id: sensor.weatherman_data
+    attribute: weather_condition_1
+    id: weather_condition_1
+    on_value:
+      then:
+        - lambda: 'id(data_updated) = true;'
+  - platform: homeassistant
+    entity_id: sensor.weatherman_data
+    attribute: weather_timestamp_1
+    id: weather_timestamp_1
+    on_value:
+      then:
+        - lambda: 'id(data_updated) = true;'
+  - platform: homeassistant
+    entity_id: sensor.weatherman_data
+    attribute: weather_condition_2
+    id: weather_condition_2
+    on_value:
+      then:
+        - lambda: 'id(data_updated) = true;'
+  - platform: homeassistant
+    entity_id: sensor.weatherman_data
+    attribute: weather_timestamp_2
+    id: weather_timestamp_2
+    on_value:
+      then:
+        - lambda: 'id(data_updated) = true;'
+  - platform: homeassistant
+    entity_id: sensor.weatherman_data
+    attribute: weather_condition_3
+    id: weather_condition_3
+    on_value:
+      then:
+        - lambda: 'id(data_updated) = true;'
+  - platform: homeassistant
+    entity_id: sensor.weatherman_data
+    attribute: will_rain_today
+    id: will_rain_today_msg
+    on_value:
+      then:
+        - lambda: 'id(data_updated) = true;'
+  - platform: homeassistant
+    entity_id: sensor.weatherman_data
+    attribute: weather_timestamp_3
+    id: weather_timestamp_3
+    on_value:
+      then:
+        - lambda: 'id(data_updated) = true;'
+  - platform: homeassistant
+    entity_id: sensor.calendar_data
+    attribute: event_date
+    id: calendar_event_date
+    on_value:
+      then:
+        - lambda: 'id(data_updated) = true;'
+  - platform: homeassistant
+    entity_id: sensor.calendar_data
+    attribute: event_0
+    id: calendar_event_0
+    on_value:
+      then:
+        - lambda: 'id(data_updated) = true;'
+  - platform: homeassistant
+    entity_id: sensor.calendar_data
+    attribute: event_1
+    id: calendar_event_1
+    on_value:
+      then:
+        - lambda: 'id(data_updated) = true;'
+  - platform: homeassistant
+    entity_id: sensor.calendar_data
+    attribute: event_2
+    id: calendar_event_2
+    on_value:
+      then:
+        - lambda: 'id(data_updated) = true;'
+  - platform: homeassistant
+    entity_id: sensor.calendar_data
+    attribute: event_3
+    id: calendar_event_3
+    on_value:
+      then:
+        - lambda: 'id(data_updated) = true;'
+  - platform: homeassistant
+    entity_id: sensor.calendar_data
+    attribute: event_4
+    id: calendar_event_4
+    on_value:
+      then:
+        - lambda: 'id(data_updated) = true;'
+
+
+font:
+  - file: 'fonts/Nunito-Bold.ttf' #font change here
+    id: font_small_book
+    size: 18
+    glyphs: ["!", "\"", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "<", "=", ">", "?", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", " ", "_", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "°", "Ą", "Ć", "Ę", "Ł", "Ń", "Ó", "Ś", "Ź", "Ż", "ą", "ć", "ę", "ł", "ń", "ó", "ś", "ź", "ż"]
+  - file: 'fonts/Nunito-Bold.ttf'
+    id: font_large_bold
+    size: 70
+    #glyphs: [' ', '-', '°', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'C']
+  - file: 'fonts/Nunito-Bold.ttf'
+    id: font_title
+    size: 54
+    glyphs: ['W', 'E', 'A', 'T', 'H', 'R', 'L', 'I', 'N', ' ']
+  - file: 'fonts/Nunito-Bold.ttf'
+    id: font_medium_bold
+    size: 30
+    glyphs: ["!", "\"", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "<", "=", ">", "?", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", " ", "_", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "°", "Ą", "Ć", "Ę", "Ł", "Ń", "Ó", "Ś", "Ź", "Ż", "ą", "ć", "ę", "ł", "ń", "ó", "ś", "ź", "ż"]
+    
+  - file: 'fonts/Nunito-Bold.ttf'
+    id: font_small_bold
+    size: 18
+    glyphs: ["!", "\"", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "<", "=", ">", "?", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", " ", "_", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "°", "Ą", "Ć", "Ę", "Ł", "Ń", "Ó", "Ś", "Ź", "Ż", "ą", "ć", "ę", "ł", "ń", "ó", "ś", "ź", "ż"]
+  - file: 'fonts/Nunito-Bold.ttf'
+    id: fontBig
+    size: 32
+    glyphs: ["!", "\"", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "<", "=", ">", "?", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", " ", "_", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "°", "Ą", "Ć", "Ę", "Ł", "Ń", "Ó", "Ś", "Ź", "Ż", "ą", "ć", "ę", "ł", "ń", "ó", "ś", "ź", "ż"]
+  - file: 'fonts/Nunito-Bold.ttf'
+    id: fontMedium
+    size: 26
+    glyphs: ["!", "\"", "%", "&", "'", "(", ")", "*", "+", ",", "-", ".", "/", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", ":", ";", "<", "=", ">", "?", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", " ", "_", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "°", "Ą", "Ć", "Ę", "Ł", "Ń", "Ó", "Ś", "Ź", "Ż", "ą", "ć", "ę", "ł", "ń", "ó", "ś", "ź", "ż"]
+
+  # Include Material Design Icons font
+  - file: 'fonts/materialdesignicons-webfont.ttf'
+    id: font_mdi_large
+    size: 96
+    glyphs: &mdi-weather-glyphs
+      - "\U000F0590" # mdi-weather-cloudy
+      - "\U000F0F2F" # mdi-weather-cloudy-alert
+      - "\U000F0E6E" # mdi-weather-cloudy-arrow-right
+      - "\U000F0591" # mdi-weather-fog
+      - "\U000F0592" # mdi-weather-hail
+      - "\U000F0F30" # mdi-weather-hazy
+      - "\U000F0898" # mdi-weather-hurricane
+      - "\U000F0593" # mdi-weather-lightning
+      - "\U000F067E" # mdi-weather-lightning-rainy
+      - "\U000F0594" # mdi-weather-night
+      - "\U000F0F31" # mdi-weather-night-partly-cloudy
+      - "\U000F0595" # mdi-weather-partly-cloudy
+      - "\U000F0F32" # mdi-weather-partly-lightning
+      - "\U000F0F33" # mdi-weather-partly-rainy
+      - "\U000F0F34" # mdi-weather-partly-snowy
+      - "\U000F0F35" # mdi-weather-partly-snowy-rainy
+      - "\U000F0596" # mdi-weather-pouring
+      - "\U000F0597" # mdi-weather-rainy
+      - "\U000F0598" # mdi-weather-snowy
+      - "\U000F0F36" # mdi-weather-snowy-heavy
+      - "\U000F067F" # mdi-weather-snowy-rainy
+      - "\U000F0599" # mdi-weather-sunny
+      - "\U000F0F37" # mdi-weather-sunny-alert
+      - "\U000F14E4" # mdi-weather-sunny-off
+      - "\U000F059A" # mdi-weather-sunset
+      - "\U000F059B" # mdi-weather-sunset-down
+      - "\U000F059C" # mdi-weather-sunset-up
+      - "\U000F0F38" # mdi-weather-tornado
+      - "\U000F059D" # mdi-weather-windy
+      - "\U000F059E" # mdi-weather-windy-variant
+  - file: 'fonts/materialdesignicons-webfont.ttf'
+    id: font_mdi_medium
+    size: 36
+    glyphs: *mdi-weather-glyphs
+
+# Define colors
+color:
+  - id: color_black
+    red: 0%
+    green: 0%
+    blue: 0%
+    white: 100%
+  - id: color_white
+    red: 0%
+    green: 0%
+    blue: 0%
+    white: 0%
+  - id: color_red
+    red: 100%
+    green: 0%
+    blue: 0%
+    white: 0%    
+  - id: color_text
+    red: 0%
+    green: 0%
+    blue: 0%
+    white: 0%
+
+
+# Script for updating screen - Refresh display and publish refresh count and time. (Thanks @paviro!)
+script:
+  - id: update_screen
+    then:
+      - lambda: 'id(data_updated) = false;'
+      - lambda: 'id(eink_display).set_fast_refresh(id(recorded_display_refresh) % 10 != 0);'
+      - component.update: eink_display
+      - lambda: 'id(recorded_display_refresh) += 1;'
+#      - lambda: 'id(display_last_update).publish_state(id(homeassistant_time).now().timestamp);'
+
+# Pins for Waveshare ePaper ESP Board
+spi:
+  clk_pin: GPIO13
+  mosi_pin: GPIO14
+
+display:
+  - platform: waveshare_epaper
+    id: eink_display
+    cs_pin: GPIO15
+    dc_pin: GPIO27
+    busy_pin:
+      number: GPIO25
+      inverted: true
+    reset_pin: GPIO26
+    #reset_duration: 200ms
+    #update_interval: 30s
+    #reset_duration: 2ms
+    #model: 7.50in-bv2-rb
+    #model: 7.50in-bv3my
+    model: 7.50in-bv3
+    #model: 7.50in-bv2-rb
+    #model: 7.50in-bV3-bwr
+    fast_refresh: true
+    update_interval: never
+    rotation: 0°
+    lambda: |-
+      // Map weather states to MDI characters.
+      std::map<std::string, std::string> moon_icon_map
+        {
+          {"first_quarter", "\U000F0F61"},
+          {"full_moon", "\U000F0F62"},
+          {"last_quarter", "\U000F0F63"},
+          {"new_moon", "\U000F0F64"},
+          {"waning_crescent", "\U000F0F65"},
+          {"waning_gibbous", "\U000F0F66"},
+          {"waxing_crescent", "\U000F0F67"},
+          {"waxing_gibbous", "\U000F0F68"},
+          
+        };
+      std::map<std::string, std::string> weather_icon_map
+        {
+          {"cloudy", "\U000F0590"},
+          {"cloudy-alert", "\U000F0F2F"},
+          {"cloudy-arrow-right", "\U000F0E6E"},
+          {"fog", "\U000F0591"},
+          {"hail", "\U000F0592"},
+          {"hazy", "\U000F0F30"},
+          {"hurricane", "\U000F0898"},
+          {"lightning", "\U000F0593"},
+          {"lightning-rainy", "\U000F067E"},
+          {"night", "\U000F0594"},
+          {"clear-night", "\U000F0594"},
+          {"night-partly-cloudy", "\U000F0F31"},
+          {"partlycloudy", "\U000F0595"},
+          {"partly-lightning", "\U000F0F32"},
+          {"partly-rainy", "\U000F0F33"},
+          {"partly-snowy", "\U000F0F34"},
+          {"partly-snowy-rainy", "\U000F0F35"},
+          {"pouring", "\U000F0596"},
+          {"rainy", "\U000F0597"},
+          {"snowy", "\U000F0598"},
+          {"snowy-heavy", "\U000F0F36"},
+          {"snowy-rainy", "\U000F067F"},
+          {"sunny", "\U000F0599"},
+          {"sunny-alert", "\U000F0F37"},
+          {"sunny-off", "\U000F14E4"},
+          {"sunset", "\U000F059A"},
+          {"sunset-down", "\U000F059B"},
+          {"sunset-up", "\U000F059C"},
+          {"tornado", "\U000F0F38"},
+          {"windy", "\U000F059D"},
+          {"windy-variant", "\U000F059E"},
+        };
+
+      #define x1 90 // x position for first weather icon
+      #define wSpace 70 // x space for weather icon
+      #define weatherYStart 130 // x space for weather icon
+
+      //it.printf(180, 20, id(font_title), TextAlign::TOP_CENTER, "WEATHER");
+
+      // weather
+      it.printf(90, 20, id(font_mdi_large), TextAlign::TOP_CENTER, "%s", weather_icon_map[id(weather_condition_now).state.c_str()].c_str());
+      it.printf(240, 35, id(font_large_bold), TextAlign::TOP_CENTER, "%2.0f°C", id(weather_temperature).state);
+
+      it.printf(x1, weatherYStart, id(font_small_book), TextAlign::TOP_CENTER, "%s", id(weather_timestamp_0).state.c_str()); //24
+      it.printf(x1, weatherYStart + 24, id(font_mdi_medium), TextAlign::TOP_CENTER, "%s", weather_icon_map[id(weather_condition_0).state.c_str()].c_str());
+      it.printf(x1, weatherYStart + 72, id(font_small_bold), TextAlign::TOP_CENTER, "%2.0f°C", id(weather_temperature_0).state);
+
+      it.printf(x1 + wSpace, weatherYStart, id(font_small_book), TextAlign::TOP_CENTER, "%s", id(weather_timestamp_1).state.c_str());
+      it.printf(x1 + wSpace, weatherYStart + 24, id(font_mdi_medium), TextAlign::TOP_CENTER, "%s", weather_icon_map[id(weather_condition_1).state.c_str()].c_str());
+      it.printf(x1 + wSpace, weatherYStart + 72, id(font_small_bold), TextAlign::TOP_CENTER, "%2.0f°C", id(weather_temperature_1).state);
+
+      it.printf(x1 + 2*wSpace, weatherYStart, id(font_small_book), TextAlign::TOP_CENTER, "%s", id(weather_timestamp_2).state.c_str());
+      it.printf(x1 + 2*wSpace, weatherYStart + 24, id(font_mdi_medium), TextAlign::TOP_CENTER, "%s", weather_icon_map[id(weather_condition_2).state.c_str()].c_str());
+      it.printf(x1 + 2*wSpace, weatherYStart + 72, id(font_small_bold), TextAlign::TOP_CENTER, "%2.0f°C", id(weather_temperature_2).state);
+
+      it.printf(x1 + 3*wSpace, weatherYStart, id(font_small_book), TextAlign::TOP_CENTER, "%s", id(weather_timestamp_3).state.c_str());
+      it.printf(x1 + 3*wSpace, weatherYStart + 24, id(font_mdi_medium), TextAlign::TOP_CENTER, "%s", weather_icon_map[id(weather_condition_3).state.c_str()].c_str());
+      it.printf(x1 + 3*wSpace, weatherYStart + 72, id(font_small_bold), TextAlign::TOP_CENTER, "%2.0f°C", id(weather_temperature_3).state);
+
+      it.printf(x1 + 1.5 * wSpace, weatherYStart + 100, id(fontMedium), TextAlign::TOP_CENTER, "%s", id(will_rain_today_msg).state.c_str());
+      // end weather 
+
+      // Draw separation lines
+      it.line(440, 0, 440, 480);
+      it.line(0, 270, 800, 270);
+
+      //temps
+      #define tempsTitleYStart 300 
+      #define tempsTitleXStart 60 
+      #define titleBottomPadding 40
+      #define tempRowPadding 50
+      int tempTitleRowX = tempsTitleXStart + 42;
+      int tempValueRowX =  tempTitleRowX + 132;
+      int tempFirstRowY = tempsTitleYStart + titleBottomPadding;
+
+      it.printf(tempsTitleXStart, tempsTitleYStart, id(fontMedium), TextAlign::BASELINE_LEFT, "Temperatury");
+      it.printf(tempTitleRowX, tempFirstRowY, id(fontMedium), TextAlign::BASELINE_LEFT, "Salon");
+      it.printf(tempValueRowX, tempFirstRowY, id(fontMedium), TextAlign::BASELINE_LEFT, "%.1f °C", id(temp_salon).state); 
+      it.printf(tempTitleRowX, tempFirstRowY + tempRowPadding, id(fontMedium), TextAlign::BASELINE_LEFT,"Goscinny");
+      it.printf(tempValueRowX, tempFirstRowY + tempRowPadding, id(fontMedium), TextAlign::BASELINE_LEFT, "%.1f °C", id(temp_goscinny).state);
+      it.printf(tempTitleRowX, tempFirstRowY + 2*tempRowPadding, id(fontMedium), TextAlign::BASELINE_LEFT, "Balkon");
+      it.printf(tempValueRowX, tempFirstRowY + 2*tempRowPadding, id(fontMedium), TextAlign::BASELINE_LEFT, "%.1f °C", id(temp_balkon).state);
+      //end temps
+
+      it.printf(480, 330, id(fontMedium), TextAlign::BASELINE_LEFT, "Days until Christmas");
+      it.printf(550, 400, id(font_large_bold), TextAlign::BASELINE_LEFT, "%d", int(id(days_till).state));
+
+      #define calX 460
+      #define calY 25
+      #define calWidth 320
+      
+      // Robust word-wrap drawing for calendar items
+      auto draw_cal = [&](int x, int &y, const std::string &text) {
+        std::string rem = text;
+        while (!rem.empty() && y < 250) {
+          std::string line = rem;
+          int b_x, b_y, b_w, b_h;
+          it.get_text_bounds(0, 0, line.c_str(), id(font_small_bold), TextAlign::TOP_LEFT, &b_x, &b_y, &b_w, &b_h);
+          while (b_w > calWidth) {
+            size_t space = line.find_last_of(' ');
+            if (space == std::string::npos) { line.pop_back(); if(line.empty()) break; }
+            else line = line.substr(0, space);
+            it.get_text_bounds(0, 0, line.c_str(), id(font_small_bold), TextAlign::TOP_LEFT, &b_x, &b_y, &b_w, &b_h);
+          }
+          it.print(x, y, id(font_small_bold), line.c_str());
+          y += 22; 
+          if (line.empty() || line.length() >= rem.length()) break;
+          rem = rem.substr(line.length());
+          if (!rem.empty() && rem[0] == ' ') rem = rem.substr(1);
+        }
+        y += 8;
+      };
+
+      int y_pos = calY;
+      // Draw Date Title
+      it.printf(calX, y_pos, id(fontMedium), TextAlign::TOP_LEFT, "%s", id(calendar_event_date).state.c_str());
+      y_pos += 35;
+
+      // Draw up to 5 events for that day
+      draw_cal(calX, y_pos, id(calendar_event_0).state);
+      draw_cal(calX, y_pos, id(calendar_event_1).state);
+      draw_cal(calX, y_pos, id(calendar_event_2).state);
+      draw_cal(calX, y_pos, id(calendar_event_3).state);
+      draw_cal(calX, y_pos, id(calendar_event_4).state);
+
+
+captive_portal:
+

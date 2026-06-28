@@ -871,6 +871,8 @@ class WaveshareEPaper7P5InBV3BWR : public WaveshareEPaperBWR {
 
   void clear_screen();
 
+  void set_fast_refresh(bool fast) { this->fast_refresh_ = fast; }
+
  protected:
   int get_width_internal() override;
 
@@ -888,6 +890,8 @@ class WaveshareEPaper7P5InBV3BWR : public WaveshareEPaperBWR {
   };
 
   void init_display_();
+
+  bool fast_refresh_{false};
 };
 
 class WaveshareEPaper7P5InBC : public WaveshareEPaper {

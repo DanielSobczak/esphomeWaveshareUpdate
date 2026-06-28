@@ -4076,6 +4076,29 @@ void WaveshareEPaper7P5InBV3BWR::init_display_() {
   this->data(0x00);  // 800*480
   this->data(0x00);
   this->data(0x00);
+
+  if (this->fast_refresh_) {
+    uint8_t count;
+    this->command(0x20);  // LUTC (VCOM)
+    for (count = 0; count < UC8151Dx_LUTC_SIZE; count++)
+      this->data(_test01_lut_vcom_data[count]);
+
+    this->command(0x21);  // LUTWW
+    for (count = 0; count < UC8151Dx_LUTWW_SIZE; count++)
+      this->data(_test01_lut_ww_data[count]);
+
+    this->command(0x22);  // LUTR
+    for (count = 0; count < UC8151Dx_LUTR_SIZE; count++)
+      this->data(_test01_lut_r_data[count]);
+
+    this->command(0x23);  // LUTW
+    for (count = 0; count < UC8151Dx_LUTW_SIZE; count++)
+      this->data(_test01_lut_w_data[count]);
+
+    this->command(0x24);  // LUTB
+    for (count = 0; count < UC8151Dx_LUTB_SIZE; count++)
+      this->data(_test01_lut_b_data[count]);
+  }
 };
 void HOT WaveshareEPaper7P5InBV3BWR::display() {
   this->init_display_();
@@ -4103,6 +4126,7 @@ int WaveshareEPaper7P5InBV3BWR::get_height_internal() { return 480; }
 void WaveshareEPaper7P5InBV3BWR::dump_config() {
   LOG_DISPLAY("", "Waveshare E-Paper", this);
   ESP_LOGCONFIG(TAG, "  Model: 7.5in-bv3 BWR-Mode");
+  ESP_LOGCONFIG(TAG, "  Refresh mode: %s", this->fast_refresh_ ? "fast" : "slow");
   LOG_PIN("  Reset Pin: ", this->reset_pin_);
   LOG_PIN("  DC Pin: ", this->dc_pin_);
   LOG_PIN("  Busy Pin: ", this->busy_pin_);
