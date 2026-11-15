@@ -594,7 +594,7 @@ const unsigned char _test01_lut_b_data[UC8151Dx_LUTB_SIZE] = {
 };
 
 
-ESPHOME_LOG_TAG(TAG, "waveshare_epaper");
+static const char *const TAG = "waveshare_epaper";
 
 static const uint8_t LUT_SIZE_WAVESHARE = 30;
 
