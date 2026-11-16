@@ -4005,17 +4005,15 @@ void WaveshareEPaper7P5InBV3::init_display_(bool full) {
 };
 
 void HOT WaveshareEPaper7P5InBV3::display() {
-  if (this->full_update_.next_is_full()) {
-    this->refresh_(true);
-    this->shown_valid_ = false;
-  }
   bool ok;
-  if (this->shown_valid_) {
+  if (this->full_update_.next_is_full()) {
+    // Test: the 7 second fast refresh left the middle of the panel pale, so it no longer follows the
+    // factory waveform. A short push of every pixel into its own colour is tried against the red tint.
+    ok = this->refresh_(true) && this->refresh_changes_(true);
+  } else if (this->shown_valid_) {
     ok = this->refresh_changes_(false);
   } else {
-    // The factory waveform leaves a red tint on the white areas, which a fast refresh clears.
-    // The fast refresh can leave black areas pale, so every pixel gets a short extra push after it.
-    ok = this->refresh_(false) && this->refresh_changes_(true);
+    ok = this->refresh_(false);
   }
   this->shown_valid_ = ok && this->shown_ != nullptr;
   if (this->shown_valid_)
