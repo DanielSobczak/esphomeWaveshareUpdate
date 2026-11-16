@@ -3850,19 +3850,29 @@ bool WaveshareEPaper7P5InBV3::wait_until_idle_() {
   delay(200);  // NOLINT
   return true;
 };
-static void send_lut(WaveshareEPaperBase &epd, uint8_t reg, const uint8_t *lut, size_t size) {
+// Step 2 of the fast waveform is the red phase. The tables repeat it 20 times (about 24 seconds),
+// during which a black/white picture no longer changes.
+static constexpr size_t FAST_LUT_RED_PHASE_REPEAT_INDEX = 17;
+static constexpr uint8_t FAST_LUT_RED_PHASE_REPEATS = 20;
+static constexpr uint8_t FAST_LUT_RED_PHASE_REPEATS_SHORT = 2;
+
+// Sends a fast table with the given number of red phase repeats. Tables that skip the red phase are sent unchanged.
+static void send_fast_lut(WaveshareEPaperBase &epd, uint8_t reg, const uint8_t *lut, size_t size,
+                          uint8_t red_phase_repeats) {
   epd.command(reg);
-  for (size_t i = 0; i < size; i++)
-    epd.data(lut[i]);
+  for (size_t i = 0; i < size; i++) {
+    const bool is_red_phase_repeat = i == FAST_LUT_RED_PHASE_REPEAT_INDEX && lut[i] != 0;
+    epd.data(is_red_phase_repeat ? red_phase_repeats : lut[i]);
+  }
 }
 
 // Fast waveform shared by both 7.5in (B) V3 drivers
-static void send_fast_luts(WaveshareEPaperBase &epd) {
-  send_lut(epd, 0x20, _test01_lut_vcom_data, UC8151Dx_LUTC_SIZE);
-  send_lut(epd, 0x21, _test01_lut_ww_data, UC8151Dx_LUTWW_SIZE);
-  send_lut(epd, 0x22, _test01_lut_r_data, UC8151Dx_LUTR_SIZE);
-  send_lut(epd, 0x23, _test01_lut_w_data, UC8151Dx_LUTW_SIZE);
-  send_lut(epd, 0x24, _test01_lut_b_data, UC8151Dx_LUTB_SIZE);
+static void send_fast_luts(WaveshareEPaperBase &epd, uint8_t red_phase_repeats) {
+  send_fast_lut(epd, 0x20, _test01_lut_vcom_data, UC8151Dx_LUTC_SIZE, red_phase_repeats);
+  send_fast_lut(epd, 0x21, _test01_lut_ww_data, UC8151Dx_LUTWW_SIZE, red_phase_repeats);
+  send_fast_lut(epd, 0x22, _test01_lut_r_data, UC8151Dx_LUTR_SIZE, red_phase_repeats);
+  send_fast_lut(epd, 0x23, _test01_lut_w_data, UC8151Dx_LUTW_SIZE, red_phase_repeats);
+  send_fast_lut(epd, 0x24, _test01_lut_b_data, UC8151Dx_LUTB_SIZE, red_phase_repeats);
 }
 
 // A full refresh uses the panel's factory waveform in red mode.
@@ -3969,7 +3979,8 @@ void WaveshareEPaper7P5InBV3::init_display_(bool full) {
   this->data(0x00);
   this->data(0x00);
 
-  send_fast_luts(*this);
+  // Test: a shorter red phase, to see whether the picture stays good
+  send_fast_luts(*this, FAST_LUT_RED_PHASE_REPEATS_SHORT);
 };
 
 void HOT WaveshareEPaper7P5InBV3::display() {
@@ -4085,7 +4096,7 @@ void WaveshareEPaper7P5InBV3BWR::init_display_(bool full) {
   this->data(0x00);
 
   if (!full)
-    send_fast_luts(*this);
+    send_fast_luts(*this, FAST_LUT_RED_PHASE_REPEATS);
 };
 void HOT WaveshareEPaper7P5InBV3BWR::display() {
   this->full_ = this->full_update_.next_is_full();
