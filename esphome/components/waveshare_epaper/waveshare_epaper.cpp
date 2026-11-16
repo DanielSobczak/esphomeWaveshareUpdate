@@ -4029,7 +4029,10 @@ void WaveshareEPaper7P5InBV3::refresh_(bool full) {
   const uint32_t start = millis();
   this->wait_until_idle_();
   ESP_LOGD(TAG, "Panel was busy for %" PRIu32 " ms", millis() - start);
-  this->deep_sleep();
+  // Powering the panel off right after the fast waveform fades the picture, so it stays powered
+  // until the next update, as it did when the busy limit cut the waveform off
+  if (full)
+    this->deep_sleep();
 }
 int WaveshareEPaper7P5InBV3::get_width_internal() { return 800; }
 int WaveshareEPaper7P5InBV3::get_height_internal() { return 480; }
