@@ -3831,7 +3831,14 @@ void WaveshareEPaper7P5InBV2::dump_config() {
   LOG_UPDATE_INTERVAL(this);
 }
 
-void WaveshareEPaper7P5InBV3::initialize() { this->init_display_(true); }
+void WaveshareEPaper7P5InBV3::initialize() {
+  // Without this copy every fast refresh redraws the whole panel
+  RAMAllocator<uint8_t> allocator;
+  this->shown_ = allocator.allocate(this->get_buffer_length_());
+  if (this->shown_ == nullptr)
+    ESP_LOGW(TAG, "No memory to remember the shown picture");
+  this->init_display_(true);
+}
 bool WaveshareEPaper7P5InBV3::wait_until_idle_() {
   if (this->busy_pin_ == nullptr) {
     return true;
@@ -3873,6 +3880,23 @@ static void send_fast_luts(WaveshareEPaperBase &epd, uint8_t red_phase_repeats) 
   send_fast_lut(epd, 0x22, _test01_lut_r_data, UC8151Dx_LUTR_SIZE, red_phase_repeats);
   send_fast_lut(epd, 0x23, _test01_lut_w_data, UC8151Dx_LUTW_SIZE, red_phase_repeats);
   send_fast_lut(epd, 0x24, _test01_lut_b_data, UC8151Dx_LUTB_SIZE, red_phase_repeats);
+}
+
+// Source levels of a waveform step in black/white mode
+static constexpr uint8_t LUT_LEVEL_HOLD = 0x00;
+static constexpr uint8_t LUT_LEVEL_BLACK = 0x40;
+static constexpr uint8_t LUT_LEVEL_WHITE = 0x80;
+// The panel runs about 48 frames per second
+static constexpr uint8_t CHANGE_FRAMES = 60;
+static constexpr uint8_t REINFORCE_FRAMES = 30;
+
+// Sends a table with a single step: `level` for `frames` frames
+static void send_one_step_lut(WaveshareEPaperBase &epd, uint8_t reg, size_t size, uint8_t level, uint8_t frames) {
+  epd.command(reg);
+  epd.data(level);
+  epd.data(frames);
+  for (size_t i = 2; i < size; i++)
+    epd.data(i == 5 ? 1 : 0);  // byte 5 is the repeat count of the step
 }
 
 // A full refresh uses the panel's factory waveform in red mode.
@@ -3978,21 +4002,72 @@ void WaveshareEPaper7P5InBV3::init_display_(bool full) {
   this->data(0x00);  // 800*480
   this->data(0x00);
   this->data(0x00);
-
-  // Black/white mode: 2 repeats of the red phase give the same picture in about 7 seconds instead of 29
-  send_fast_luts(*this, FAST_LUT_RED_PHASE_REPEATS_SHORT);
 };
 
 void HOT WaveshareEPaper7P5InBV3::display() {
-  // The factory waveform leaves a red tint on the white areas, which a fast refresh clears
-  if (this->full_update_.next_is_full())
+  if (this->full_update_.next_is_full()) {
     this->refresh_(true);
-  this->refresh_(false);
+    this->shown_valid_ = false;
+  }
+  bool ok;
+  if (this->shown_valid_) {
+    ok = this->refresh_changes_(false);
+  } else {
+    // The factory waveform leaves a red tint on the white areas, which a fast refresh clears.
+    // The fast refresh can leave black areas pale, so every pixel gets a short extra push after it.
+    ok = this->refresh_(false) && this->refresh_changes_(true);
+  }
+  this->shown_valid_ = ok && this->shown_ != nullptr;
+  if (this->shown_valid_)
+    memcpy(this->shown_, this->buffer_, this->get_buffer_length_());
 }
-void WaveshareEPaper7P5InBV3::refresh_(bool full) {
+bool WaveshareEPaper7P5InBV3::run_refresh_() {
+  this->command(0x12);  // Display Refresh
+  delay(100);           // NOLINT
+  const uint32_t start = millis();
+  const bool ok = this->wait_until_idle_();
+  ESP_LOGD(TAG, "Panel was busy for %" PRIu32 " ms", millis() - start);
+  this->deep_sleep();
+  return ok;
+}
+bool WaveshareEPaper7P5InBV3::refresh_changes_(bool reinforce) {
+  this->full_ = false;
+  ESP_LOGD(TAG, "%s refresh", reinforce ? LOG_STR_LITERAL("Reinforce") : LOG_STR_LITERAL("Changes only"));
+  this->init_display_(false);
+
+  // Leave the border alone
+  this->command(0x50);
+  this->data(0x90);
+  this->data(0x00);
+
+  // Pixels that keep their colour are not driven, unless the whole picture is reinforced
+  const uint8_t frames = reinforce ? REINFORCE_FRAMES : CHANGE_FRAMES;
+  send_one_step_lut(*this, 0x20, UC8151Dx_LUTC_SIZE, LUT_LEVEL_HOLD, frames);
+  send_one_step_lut(*this, 0x21, UC8151Dx_LUTWW_SIZE, reinforce ? LUT_LEVEL_WHITE : LUT_LEVEL_HOLD, frames);
+  send_one_step_lut(*this, 0x22, UC8151Dx_LUTR_SIZE, LUT_LEVEL_WHITE, frames);  // black to white
+  send_one_step_lut(*this, 0x23, UC8151Dx_LUTW_SIZE, LUT_LEVEL_BLACK, frames);  // white to black
+  send_one_step_lut(*this, 0x24, UC8151Dx_LUTB_SIZE, reinforce ? LUT_LEVEL_BLACK : LUT_LEVEL_HOLD, frames);
+
+  const uint8_t *previous = reinforce ? this->buffer_ : this->shown_;
+  const uint32_t buf_len = this->get_buffer_length_();
+  this->command(0x10);  // Previous image
+  for (uint32_t i = 0; i < buf_len; i++)
+    this->data(~previous[i]);
+
+  this->command(0x13);  // New image
+  delay(2);
+  for (uint32_t i = 0; i < buf_len; i++)
+    this->data(~this->buffer_[i]);
+
+  return this->run_refresh_();
+}
+bool WaveshareEPaper7P5InBV3::refresh_(bool full) {
   this->full_ = full;
   ESP_LOGD(TAG, "%s refresh", this->full_ ? LOG_STR_LITERAL("Full") : LOG_STR_LITERAL("Fast"));
   this->init_display_(this->full_);
+  // Black/white mode: 2 repeats of the red phase give the same picture in about 7 seconds instead of 29
+  if (!this->full_)
+    send_fast_luts(*this, FAST_LUT_RED_PHASE_REPEATS_SHORT);
   uint32_t buf_len = this->get_buffer_length_();
 
   // Red mode takes the black plane first (1 is white) and then the red plane, which stays empty.
@@ -4008,12 +4083,7 @@ void WaveshareEPaper7P5InBV3::refresh_(bool full) {
     this->data(this->full_ ? 0x00 : ~this->buffer_[i]);
   }
 
-  this->command(0x12);  // Display Refresh
-  delay(100);           // NOLINT
-  const uint32_t start = millis();
-  this->wait_until_idle_();
-  ESP_LOGD(TAG, "Panel was busy for %" PRIu32 " ms", millis() - start);
-  this->deep_sleep();
+  return this->run_refresh_();
 }
 int WaveshareEPaper7P5InBV3::get_width_internal() { return 800; }
 int WaveshareEPaper7P5InBV3::get_height_internal() { return 480; }

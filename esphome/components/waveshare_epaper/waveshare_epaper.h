@@ -876,8 +876,12 @@ class WaveshareEPaper7P5InBV3 : public WaveshareEPaper {
   };
 
   void init_display_(bool full);
-  /// Send the image and run one refresh with the full or the fast waveform.
-  void refresh_(bool full);
+  /// Send the image and run one refresh with the full or the fast waveform. Returns false on a timeout.
+  bool refresh_(bool full);
+  /// Drive only the pixels that differ from the shown picture, or with `reinforce` push every pixel
+  /// further into the colour it already has. Takes 1 to 2 seconds and does not flash.
+  bool refresh_changes_(bool reinforce);
+  bool run_refresh_();
 
   // Fast waveform on every update unless full_update_every is set
   FullUpdateCounter full_update_{0};
@@ -885,6 +889,9 @@ class WaveshareEPaper7P5InBV3 : public WaveshareEPaper {
   // The factory waveform runs for about 30 seconds, the fast one for about 7 seconds
   uint32_t idle_timeout_() override { return this->full_ ? 45000u : 15000u; }
   bool full_{true};
+  // What the panel shows now; only meaningful while shown_valid_ is set
+  uint8_t *shown_{nullptr};
+  bool shown_valid_{false};
 };
 
 class WaveshareEPaper7P5InBV3BWR : public WaveshareEPaperBWR {
