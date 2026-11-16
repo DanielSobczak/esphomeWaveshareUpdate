@@ -3979,7 +3979,7 @@ void WaveshareEPaper7P5InBV3::init_display_(bool full) {
   this->data(0x00);
   this->data(0x00);
 
-  // Test: a shorter red phase, to see whether the picture stays good
+  // Black/white mode: 2 repeats of the red phase give the same picture in about 7 seconds instead of 29
   send_fast_luts(*this, FAST_LUT_RED_PHASE_REPEATS_SHORT);
 };
 
