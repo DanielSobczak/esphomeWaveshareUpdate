@@ -3887,7 +3887,7 @@ static constexpr uint8_t LUT_LEVEL_HOLD = 0x00;
 static constexpr uint8_t LUT_LEVEL_BLACK = 0x40;
 static constexpr uint8_t LUT_LEVEL_WHITE = 0x80;
 // The panel runs about 48 frames per second
-static constexpr uint8_t CHANGE_FRAMES = 60;
+static constexpr uint8_t CHANGE_FRAMES = 75;
 static constexpr uint8_t REINFORCE_FRAMES = 30;
 
 // Sends a table with a single step: `level` for `frames` frames
