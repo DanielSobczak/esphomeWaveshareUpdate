@@ -882,8 +882,8 @@ class WaveshareEPaper7P5InBV3 : public WaveshareEPaper {
   // Fast waveform on every update unless full_update_every is set
   FullUpdateCounter full_update_{0};
 
-  // The factory waveform runs for about 30 seconds; the fast one keeps the short limit it always had
-  uint32_t idle_timeout_() override { return this->full_ ? 45000u : 1000u; }
+  // The factory waveform runs for about 30 seconds, the trimmed fast one for under 3 seconds
+  uint32_t idle_timeout_() override { return this->full_ ? 45000u : 5000u; }
   bool full_{true};
 };
 

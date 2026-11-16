@@ -3865,6 +3865,33 @@ static void send_fast_luts(WaveshareEPaperBase &epd) {
   send_lut(epd, 0x24, _test01_lut_b_data, UC8151Dx_LUTB_SIZE);
 }
 
+// Fast waveform for black/white mode: the shared tables up to the point where the 1 second busy limit
+// used to cut them off. Each group is: levels, four durations in frames, repeat count.
+// Group 0 shakes the pigments, group 1 drives the pixels, group 2 lets the panel discharge.
+static constexpr uint8_t FAST_KW_LUT_SIZE = 60;
+static constexpr uint8_t FAST_KW_DRIVE_FRAMES = 75;
+static constexpr uint8_t FAST_KW_DISCHARGE_FRAMES = 10;
+static constexpr uint8_t FAST_KW_LUT_VCOM[FAST_KW_LUT_SIZE] = {
+    Vc_0000, 1, 2, 1, 2, 5, Vc_0000, FAST_KW_DRIVE_FRAMES, 0, 0, 0, 1, Vc_0000, FAST_KW_DISCHARGE_FRAMES, 0, 0, 0, 1,
+};
+static constexpr uint8_t FAST_KW_LUT_R[FAST_KW_LUT_SIZE] = {
+    Gt_LHLH, 1, 2, 1, 2, 5, Gt_00Lh, FAST_KW_DRIVE_FRAMES, 0, 0, 0, 1, Gt_0000, FAST_KW_DISCHARGE_FRAMES, 0, 0, 0, 1,
+};
+static constexpr uint8_t FAST_KW_LUT_W[FAST_KW_LUT_SIZE] = {
+    Gt_LHLH, 1, 2, 1, 2, 5, Gt_00LL, FAST_KW_DRIVE_FRAMES, 0, 0, 0, 1, Gt_0000, FAST_KW_DISCHARGE_FRAMES, 0, 0, 0, 1,
+};
+static constexpr uint8_t FAST_KW_LUT_B[FAST_KW_LUT_SIZE] = {
+    Gt_LHLH, 1, 2, 1, 2, 5, Gt_00HL, FAST_KW_DRIVE_FRAMES, 0, 0, 0, 1, Gt_0000, FAST_KW_DISCHARGE_FRAMES, 0, 0, 0, 1,
+};
+
+static void send_fast_kw_luts(WaveshareEPaperBase &epd) {
+  send_lut(epd, 0x20, FAST_KW_LUT_VCOM, FAST_KW_LUT_SIZE);
+  send_lut(epd, 0x21, _test01_lut_ww_data, UC8151Dx_LUTWW_SIZE);
+  send_lut(epd, 0x22, FAST_KW_LUT_R, FAST_KW_LUT_SIZE);
+  send_lut(epd, 0x23, FAST_KW_LUT_W, FAST_KW_LUT_SIZE);
+  send_lut(epd, 0x24, FAST_KW_LUT_B, FAST_KW_LUT_SIZE);
+}
+
 // A full refresh uses the panel's factory waveform in red mode.
 // The black/white tables that ESPHome ships for this model leave this three-colour panel dark.
 void WaveshareEPaper7P5InBV3::init_display_(bool full) {
@@ -3969,7 +3996,7 @@ void WaveshareEPaper7P5InBV3::init_display_(bool full) {
   this->data(0x00);
   this->data(0x00);
 
-  send_fast_luts(*this);
+  send_fast_kw_luts(*this);
 };
 
 void HOT WaveshareEPaper7P5InBV3::display() {
