@@ -617,6 +617,7 @@ display:
     reset_pin:
       allow_other_uses: true
       number: ${reset_pin}
+    full_update_every: 30
     lambda: |-
       it.rectangle(0, 0, it.get_width(), it.get_height());
 
@@ -635,6 +636,7 @@ display:
     reset_pin:
       allow_other_uses: true
       number: ${reset_pin}
+    full_update_every: 30
     lambda: |-
       it.rectangle(0, 0, it.get_width(), it.get_height());
 
@@ -836,3 +838,10 @@ display:
       number: ${reset_pin}
     lambda: |-
       it.rectangle(0, 0, it.get_width(), it.get_height());
+
+button:
+  - platform: template
+    name: Full refresh
+    on_press:
+      - waveshare_epaper.full_refresh: epd_7_50bv3
+      - waveshare_epaper.full_refresh: epd_7_50bv3_bwr

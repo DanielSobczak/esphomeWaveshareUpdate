@@ -1,12 +1,14 @@
+import inspect
 import logging
 
-from esphome import core, pins
+from esphome import automation, core, pins
 import esphome.codegen as cg
 from esphome.components import display, spi
 import esphome.config_validation as cv
 from esphome.const import (
     CONF_BUSY_PIN,
     CONF_DC_PIN,
+    CONF_DISPLAY,
     CONF_FULL_UPDATE_EVERY,
     CONF_ID,
     CONF_LAMBDA,
@@ -15,6 +17,7 @@ from esphome.const import (
     CONF_RESET_DURATION,
     CONF_RESET_PIN,
 )
+from esphome.core import CORE, EsphomeError
 from esphome.types import ConfigType
 
 DEPENDENCIES = ["spi"]
@@ -182,14 +185,22 @@ MODELS = {
 RESET_PIN_REQUIRED_MODELS = ("2.13inv2", "2.13in-ttgo-b74")
 
 
+# Type "b" models that can switch between a fast and a full waveform
+FULL_REFRESH_MODELS = ("7.50in-bv3", "7.50in-bv3-bwr")
+
+
 def validate_full_update_every_only_types_ac(value: ConfigType) -> ConfigType:
     if CONF_FULL_UPDATE_EVERY not in value:
         return value
-    if MODELS[value[CONF_MODEL]][0] == "b":
-        full_models = []
-        for key, val in sorted(MODELS.items()):
-            if val[0] != "b":
-                full_models.append(key)
+    if (
+        MODELS[value[CONF_MODEL]][0] == "b"
+        and value[CONF_MODEL] not in FULL_REFRESH_MODELS
+    ):
+        full_models = [
+            key
+            for key, val in sorted(MODELS.items())
+            if val[0] != "b" or key in FULL_REFRESH_MODELS
+        ]
         raise cv.Invalid(
             "The 'full_update_every' option is only available for models "
             + ", ".join(full_models)
@@ -269,3 +280,38 @@ async def to_code(config: ConfigType) -> None:
         cg.add(var.set_full_update_every(config[CONF_FULL_UPDATE_EVERY]))
     if CONF_RESET_DURATION in config:
         cg.add(var.set_reset_duration(config[CONF_RESET_DURATION]))
+
+
+FullRefreshAction = waveshare_epaper_ns.class_("FullRefreshAction", automation.Action)
+
+# 'synchronous' is required by current ESPHome but not accepted by older releases
+_ACTION_KWARGS = (
+    {"synchronous": True}
+    if "synchronous" in inspect.signature(automation.register_action).parameters
+    else {}
+)
+
+
+@automation.register_action(
+    "waveshare_epaper.full_refresh",
+    FullRefreshAction,
+    automation.maybe_simple_id({cv.GenerateID(): cv.use_id(WaveshareEPaperBase)}),
+    **_ACTION_KWARGS,
+)
+async def full_refresh_to_code(
+    config: ConfigType,
+    action_id: core.ID,
+    template_arg: cg.TemplateArguments,
+    args: list[tuple],
+) -> cg.Pvariable:
+    for conf in CORE.config.get(CONF_DISPLAY, []):
+        if conf.get(CONF_ID) == config[CONF_ID] and (
+            conf.get(CONF_MODEL) not in FULL_REFRESH_MODELS
+        ):
+            raise EsphomeError(
+                "'waveshare_epaper.full_refresh' is only available for models "
+                + ", ".join(FULL_REFRESH_MODELS)
+            )
+    var = cg.new_Pvariable(action_id, template_arg)
+    await cg.register_parented(var, config[CONF_ID])
+    return var

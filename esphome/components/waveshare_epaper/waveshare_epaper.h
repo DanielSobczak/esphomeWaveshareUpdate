@@ -1,5 +1,6 @@
 #pragma once
 
+#include "esphome/core/automation.h"
 #include "esphome/core/component.h"
 #include "esphome/components/spi/spi.h"
 #include "esphome/components/display/display_buffer.h"
@@ -25,6 +26,9 @@ class WaveshareEPaperBase : public display::DisplayBuffer,
   virtual void deep_sleep() = 0;
 
   void update() override;
+
+  /// Redraw once with the full waveform. Models without a fast waveform just update.
+  virtual void full_refresh() { this->update(); }
 
   void setup() override;
 
@@ -58,6 +62,25 @@ class WaveshareEPaperBase : public display::DisplayBuffer,
   GPIOPin *dc_pin_;
   GPIOPin *busy_pin_{nullptr};
   virtual uint32_t idle_timeout_() { return 1000u; }  // NOLINT(readability-identifier-naming)
+};
+
+/// Decides which updates use the full waveform instead of the fast one.
+class FullUpdateCounter {
+ public:
+  /// @param every Every Nth update is full; 0 means only the first update after boot.
+  explicit FullUpdateCounter(uint32_t every) : every_(every) {}
+  void set_every(uint32_t every) { this->every_ = every; }
+  void force_next() { this->at_update_ = 0; }
+  /// Returns true when the update being started must be a full one, and counts it.
+  bool next_is_full() {
+    const bool full = this->at_update_ == 0;
+    this->at_update_ = this->every_ == 0 ? 1 : (this->at_update_ + 1) % this->every_;
+    return full;
+  }
+
+ protected:
+  uint32_t every_;
+  uint32_t at_update_{0};
 };
 
 class WaveshareEPaper : public WaveshareEPaperBase {
@@ -818,6 +841,13 @@ class WaveshareEPaper7P5InBV3 : public WaveshareEPaper {
 
   void display() override;
 
+  void set_full_update_every(uint32_t full_update_every) { this->full_update_.set_every(full_update_every); }
+
+  void full_refresh() override {
+    this->full_update_.force_next();
+    this->update();
+  }
+
   void dump_config() override;
 
   void deep_sleep() override {
@@ -845,7 +875,16 @@ class WaveshareEPaper7P5InBV3 : public WaveshareEPaper {
     }
   };
 
-  void init_display_();
+  void init_display_(bool full);
+  /// Send the image and run one refresh with the full or the fast waveform.
+  void refresh_(bool full);
+
+  // Fast waveform on every update unless full_update_every is set
+  FullUpdateCounter full_update_{0};
+
+  // The factory waveform runs for about 30 seconds; the fast one keeps the short limit it always had
+  uint32_t idle_timeout_() override { return this->full_ ? 45000u : 1000u; }
+  bool full_{true};
 };
 
 class WaveshareEPaper7P5InBV3BWR : public WaveshareEPaperBWR {
@@ -856,6 +895,13 @@ class WaveshareEPaper7P5InBV3BWR : public WaveshareEPaperBWR {
 
   void display() override;
 
+  void set_full_update_every(uint32_t full_update_every) { this->full_update_.set_every(full_update_every); }
+
+  void full_refresh() override {
+    this->full_update_.force_next();
+    this->update();
+  }
+
   void dump_config() override;
 
   void deep_sleep() override {
@@ -883,7 +929,15 @@ class WaveshareEPaper7P5InBV3BWR : public WaveshareEPaperBWR {
     }
   };
 
-  void init_display_();
+  void init_display_(bool full);
+
+  // Factory waveform on every update unless full_update_every is set,
+  // unlike the black/white driver, to keep this model's existing behaviour
+  FullUpdateCounter full_update_{1};
+
+  // The factory waveform runs for about 30 seconds; the fast one keeps the short limit it always had
+  uint32_t idle_timeout_() override { return this->full_ ? 45000u : 1000u; }
+  bool full_{true};
 };
 
 class WaveshareEPaper7P5InBC : public WaveshareEPaper {
@@ -1096,6 +1150,11 @@ class WaveshareEPaper13P3InK : public WaveshareEPaper {
   int get_height_internal() override;
 
   uint32_t idle_timeout_() override;
+};
+
+template<typename... Ts> class FullRefreshAction : public Action<Ts...>, public Parented<WaveshareEPaperBase> {
+ public:
+  void play(const Ts &...x) override { this->parent_->full_refresh(); }
 };
 
 }  // namespace esphome::waveshare_epaper

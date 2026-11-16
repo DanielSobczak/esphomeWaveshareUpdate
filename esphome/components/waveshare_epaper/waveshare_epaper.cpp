@@ -3831,7 +3831,7 @@ void WaveshareEPaper7P5InBV2::dump_config() {
   LOG_UPDATE_INTERVAL(this);
 }
 
-void WaveshareEPaper7P5InBV3::initialize() { this->init_display_(); }
+void WaveshareEPaper7P5InBV3::initialize() { this->init_display_(true); }
 bool WaveshareEPaper7P5InBV3::wait_until_idle_() {
   if (this->busy_pin_ == nullptr) {
     return true;
@@ -3850,8 +3850,71 @@ bool WaveshareEPaper7P5InBV3::wait_until_idle_() {
   delay(200);  // NOLINT
   return true;
 };
-void WaveshareEPaper7P5InBV3::init_display_() {
+static void send_lut(WaveshareEPaperBase &epd, uint8_t reg, const uint8_t *lut, size_t size) {
+  epd.command(reg);
+  for (size_t i = 0; i < size; i++)
+    epd.data(lut[i]);
+}
+
+// Fast waveform shared by both 7.5in (B) V3 drivers
+static void send_fast_luts(WaveshareEPaperBase &epd) {
+  send_lut(epd, 0x20, _test01_lut_vcom_data, UC8151Dx_LUTC_SIZE);
+  send_lut(epd, 0x21, _test01_lut_ww_data, UC8151Dx_LUTWW_SIZE);
+  send_lut(epd, 0x22, _test01_lut_r_data, UC8151Dx_LUTR_SIZE);
+  send_lut(epd, 0x23, _test01_lut_w_data, UC8151Dx_LUTW_SIZE);
+  send_lut(epd, 0x24, _test01_lut_b_data, UC8151Dx_LUTB_SIZE);
+}
+
+// A full refresh uses the panel's factory waveform in red mode.
+// The black/white tables that ESPHome ships for this model leave this three-colour panel dark.
+void WaveshareEPaper7P5InBV3::init_display_(bool full) {
   this->reset_();
+
+  if (full) {
+    // The same commands, in the same order, as Waveshare's demo for this panel (epd7in5b_V2)
+    this->command(0x01);  // Power setting
+    this->data(0x07);
+    this->data(0x07);  // VGH=20V, VGL=-20V
+    this->data(0x3F);  // VDH=15V
+    this->data(0x3F);  // VDL=-15V
+
+    this->command(0x04);  // Power on
+    delay(100);           // NOLINT
+    this->wait_until_idle_();
+
+    this->command(0x00);  // Panel setting
+    this->data(0x0F);     // Red mode, factory waveform
+
+    this->command(0x61);  // Resolution
+    this->data(0x03);     // source 800
+    this->data(0x20);
+    this->data(0x01);  // gate 480
+    this->data(0xE0);
+
+    this->command(0x15);
+    this->data(0x00);
+
+    this->command(0x50);  // VCOM and data interval
+    this->data(0x11);
+    this->data(0x07);
+
+    this->command(0x60);  // TCON
+    this->data(0x22);
+
+    // From the older variant of the demo (EPD_7in5b_V2_old). On the test panel -0.5V left the
+    // least red tint on white areas; -0.1V, -1.9V and the panel's own value were all worse.
+    this->command(0x82);  // VCOM
+    this->data(0x08);
+    this->command(0x30);  // Frame rate
+    this->data(0x06);
+
+    this->command(0x65);  // Gate/source start
+    this->data(0x00);
+    this->data(0x00);
+    this->data(0x00);
+    this->data(0x00);
+    return;
+  }
 
   // COMMAND POWER SETTING
   this->command(0x01);
@@ -3906,47 +3969,39 @@ void WaveshareEPaper7P5InBV3::init_display_() {
   this->data(0x00);
   this->data(0x00);
 
-
-  uint8_t count;
-  this->command(0x20);  // LUTC (VCOM)
-  for (count = 0; count < UC8151Dx_LUTC_SIZE; count++)
-    this->data(_test01_lut_vcom_data[count]);
-
-  this->command(0x21);  // LUTWW (white to white)
-  for (count = 0; count < UC8151Dx_LUTWW_SIZE; count++)
-    this->data(_test01_lut_ww_data[count]);
-
-  this->command(0x22);  // LUTR (white to white)
-  for (count = 0; count < UC8151Dx_LUTR_SIZE; count++)
-    this->data(_test01_lut_r_data[count]);
-
-  this->command(0x23);  // LUTW (white to black)
-  for (count = 0; count < UC8151Dx_LUTW_SIZE; count++)
-    this->data(_test01_lut_w_data[count]);
-
-  this->command(0x24);  // LUTBK (black to black)
-  for (count = 0; count < UC8151Dx_LUTB_SIZE; count++)
-    this->data(_test01_lut_b_data[count]);
+  send_fast_luts(*this);
 };
 
 void HOT WaveshareEPaper7P5InBV3::display() {
-  this->init_display_();
+  // The factory waveform leaves a red tint on the white areas, which a fast refresh clears
+  if (this->full_update_.next_is_full())
+    this->refresh_(true);
+  this->refresh_(false);
+}
+void WaveshareEPaper7P5InBV3::refresh_(bool full) {
+  this->full_ = full;
+  ESP_LOGD(TAG, "%s refresh", this->full_ ? LOG_STR_LITERAL("Full") : LOG_STR_LITERAL("Fast"));
+  this->init_display_(this->full_);
   uint32_t buf_len = this->get_buffer_length_();
 
+  // Red mode takes the black plane first (1 is white) and then the red plane, which stays empty.
+  // Black/white mode takes the previous image (assumed white) and then the new one.
   this->command(0x10);
   for (uint32_t i = 0; i < buf_len; i++) {
-    this->data(0xFF);
+    this->data(this->full_ ? this->buffer_[i] : 0xFF);
   }
 
   this->command(0x13);  // Start Transmission
   delay(2);
   for (uint32_t i = 0; i < buf_len; i++) {
-    this->data(~this->buffer_[i]);
+    this->data(this->full_ ? 0x00 : ~this->buffer_[i]);
   }
 
   this->command(0x12);  // Display Refresh
   delay(100);           // NOLINT
+  const uint32_t start = millis();
   this->wait_until_idle_();
+  ESP_LOGD(TAG, "Panel was busy for %" PRIu32 " ms", millis() - start);
   this->deep_sleep();
 }
 int WaveshareEPaper7P5InBV3::get_width_internal() { return 800; }
@@ -3960,7 +4015,7 @@ void WaveshareEPaper7P5InBV3::dump_config() {
   LOG_UPDATE_INTERVAL(this);
 }
 
-void WaveshareEPaper7P5InBV3BWR::initialize() { this->init_display_(); }
+void WaveshareEPaper7P5InBV3BWR::initialize() { this->init_display_(true); }
 bool WaveshareEPaper7P5InBV3BWR::wait_until_idle_() {
   if (this->busy_pin_ == nullptr) {
     return true;
@@ -3979,7 +4034,7 @@ bool WaveshareEPaper7P5InBV3BWR::wait_until_idle_() {
   delay(200);  // NOLINT
   return true;
 };
-void WaveshareEPaper7P5InBV3BWR::init_display_() {
+void WaveshareEPaper7P5InBV3BWR::init_display_(bool full) {
   this->reset_();
 
   // COMMAND POWER SETTING
@@ -4003,7 +4058,8 @@ void WaveshareEPaper7P5InBV3BWR::init_display_() {
 
   // COMMAND PANEL SETTING
   this->command(0x00);
-  this->data(0x0F);  // KW-3f   KWR-2F BWROTP 0f BWOTP 1f
+  // 0x0F uses the factory waveform, 0x2F the tables sent below
+  this->data(full ? 0x0F : 0x2F);
 
   // COMMAND RESOLUTION SETTING
   this->command(0x61);
@@ -4027,9 +4083,14 @@ void WaveshareEPaper7P5InBV3BWR::init_display_() {
   this->data(0x00);  // 800*480
   this->data(0x00);
   this->data(0x00);
+
+  if (!full)
+    send_fast_luts(*this);
 };
 void HOT WaveshareEPaper7P5InBV3BWR::display() {
-  this->init_display_();
+  this->full_ = this->full_update_.next_is_full();
+  ESP_LOGD(TAG, "%s refresh", this->full_ ? LOG_STR_LITERAL("Full") : LOG_STR_LITERAL("Fast"));
+  this->init_display_(this->full_);
   const uint32_t buf_len = this->get_buffer_length_() / 2u;
 
   this->command(0x10);  // Send BW data Transmission
@@ -4046,7 +4107,9 @@ void HOT WaveshareEPaper7P5InBV3BWR::display() {
 
   this->command(0x12);  // Display Refresh
   delay(100);           // NOLINT
+  const uint32_t start = millis();
   this->wait_until_idle_();
+  ESP_LOGD(TAG, "Panel was busy for %" PRIu32 " ms", millis() - start);
   this->deep_sleep();
 }
 int WaveshareEPaper7P5InBV3BWR::get_width_internal() { return 800; }
