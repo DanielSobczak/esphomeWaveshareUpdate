@@ -3956,19 +3956,21 @@ void WaveshareEPaper7P5InBV3::init_display_(bool full) {
   // 1-0=11: internal power
   this->data(0x07);
   this->data(0x17);  // VGH&VGL
-  this->data(0x3F);  // VSH
-  this->data(0x26);  // VSL
-  this->data(0x11);  // VSHR
+  this->data(0x3F);  // VDH=15V, drives black
+  this->data(0x26);  // VDL=-10V, drives white
+  this->data(0x11);  // VDHR
 
-  // VCOM DC Setting
+  // Test: -1.9V let the picture fade, more towards the bottom, when nearly every pixel was driven.
+  // -0.5V is what the full refresh uses on this panel.
   this->command(0x82);
-  this->data(0x24);  // VCOM
+  this->data(0x08);  // VCOM=-0.5V
 
-  // Booster Setting
+  // Booster soft start. Test: phase C at the strongest drive (was strength 6), so the voltages
+  // sag less while the whole panel is driven.
   this->command(0x06);
   this->data(0x27);
   this->data(0x27);
-  this->data(0x2F);
+  this->data(0x3F);
   this->data(0x17);
 
   // POWER ON
