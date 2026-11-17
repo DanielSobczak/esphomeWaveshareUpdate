@@ -4068,16 +4068,20 @@ bool WaveshareEPaper7P5InBV3::refresh_(bool full) {
   this->full_ = full;
   ESP_LOGD(TAG, "%s refresh", this->full_ ? LOG_STR_LITERAL("Full") : LOG_STR_LITERAL("Fast"));
   this->init_display_(this->full_);
-  // Black/white mode: 2 repeats of the red phase give the same picture in about 7 seconds instead of 29
-  if (!this->full_)
-    send_fast_luts(*this, FAST_LUT_RED_PHASE_REPEATS_SHORT);
+  if (!this->full_) {
+    // Black/white mode with an all-white previous image: white pixels use LUTWW and black pixels LUTWK.
+    // The red table is left out; in the black-to-white slot it brought red up on every white pixel.
+    send_fast_lut(*this, 0x20, _test01_lut_vcom_data, UC8151Dx_LUTC_SIZE, FAST_LUT_RED_PHASE_REPEATS_SHORT);
+    send_fast_lut(*this, 0x21, _test01_lut_w_data, UC8151Dx_LUTWW_SIZE, FAST_LUT_RED_PHASE_REPEATS_SHORT);
+    send_fast_lut(*this, 0x23, _test01_lut_b_data, UC8151Dx_LUTW_SIZE, FAST_LUT_RED_PHASE_REPEATS_SHORT);
+  }
   uint32_t buf_len = this->get_buffer_length_();
 
   // Red mode takes the black plane first (1 is white) and then the red plane, which stays empty.
-  // Black/white mode takes the previous image (assumed white) and then the new one.
+  // Black/white mode takes the previous image, where 0 is white, and then the new one.
   this->command(0x10);
   for (uint32_t i = 0; i < buf_len; i++) {
-    this->data(this->full_ ? this->buffer_[i] : 0xFF);
+    this->data(this->full_ ? this->buffer_[i] : 0x00);
   }
 
   this->command(0x13);  // Start Transmission
