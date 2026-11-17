@@ -3889,13 +3889,17 @@ static constexpr uint8_t LUT_LEVEL_WHITE = 0x80;
 // The panel runs about 48 frames per second
 static constexpr uint8_t CHANGE_FRAMES = 75;
 static constexpr uint8_t REINFORCE_FRAMES = 30;
+// Frames at ground after the drive, so the pixels are not left charged when the panel powers off
+static constexpr uint8_t SETTLE_FRAMES = 10;
 
-// Sends a table with a single step: `level` for `frames` frames
+// Sends a table with a single step: `level` for `frames` frames, then ground for SETTLE_FRAMES.
+// The levels only use the first phase (bits 7:6), so the second phase is ground.
 static void send_one_step_lut(WaveshareEPaperBase &epd, uint8_t reg, size_t size, uint8_t level, uint8_t frames) {
   epd.command(reg);
   epd.data(level);
   epd.data(frames);
-  for (size_t i = 2; i < size; i++)
+  epd.data(SETTLE_FRAMES);
+  for (size_t i = 3; i < size; i++)
     epd.data(i == 5 ? 1 : 0);  // byte 5 is the repeat count of the step
 }
 
