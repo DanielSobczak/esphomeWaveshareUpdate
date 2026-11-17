@@ -878,8 +878,8 @@ class WaveshareEPaper7P5InBV3 : public WaveshareEPaper {
   void init_display_(bool full);
   /// Send the image and run one refresh with the full or the fast waveform. Returns false on a timeout.
   bool refresh_(bool full);
-  /// Drive only the pixels that differ from the shown picture, or with `reinforce` push every pixel
-  /// further into the colour it already has. Takes 1 to 2 seconds and does not flash.
+  /// Drive only the pixels that differ from the shown picture, or with `reinforce` push every white
+  /// pixel further into white. Takes 1 to 2 seconds and does not flash.
   bool refresh_changes_(bool reinforce);
   bool run_refresh_();
 

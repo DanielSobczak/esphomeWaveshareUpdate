@@ -4007,8 +4007,8 @@ void WaveshareEPaper7P5InBV3::init_display_(bool full) {
 void HOT WaveshareEPaper7P5InBV3::display() {
   bool ok;
   if (this->full_update_.next_is_full()) {
-    // Test: the 7 second fast refresh left the middle of the panel pale, so it no longer follows the
-    // factory waveform. A short push of every pixel into its own colour is tried against the red tint.
+    // The factory waveform leaves a red tint on white areas; a short push of the white pixels clears it.
+    // The 7 second fast refresh is not used here, because it left parts of the picture pale.
     ok = this->refresh_(true) && this->refresh_changes_(true);
   } else if (this->shown_valid_) {
     ok = this->refresh_changes_(false);
@@ -4038,13 +4038,14 @@ bool WaveshareEPaper7P5InBV3::refresh_changes_(bool reinforce) {
   this->data(0x90);
   this->data(0x00);
 
-  // Pixels that keep their colour are not driven, unless the whole picture is reinforced
+  // Pixels that keep their colour are not driven, except white ones when reinforcing.
+  // Black ones are never pushed again: on this three-colour panel that leaves large black areas pale.
   const uint8_t frames = reinforce ? REINFORCE_FRAMES : CHANGE_FRAMES;
   send_one_step_lut(*this, 0x20, UC8151Dx_LUTC_SIZE, LUT_LEVEL_HOLD, frames);
   send_one_step_lut(*this, 0x21, UC8151Dx_LUTWW_SIZE, reinforce ? LUT_LEVEL_WHITE : LUT_LEVEL_HOLD, frames);
   send_one_step_lut(*this, 0x22, UC8151Dx_LUTR_SIZE, LUT_LEVEL_WHITE, frames);  // black to white
   send_one_step_lut(*this, 0x23, UC8151Dx_LUTW_SIZE, LUT_LEVEL_BLACK, frames);  // white to black
-  send_one_step_lut(*this, 0x24, UC8151Dx_LUTB_SIZE, reinforce ? LUT_LEVEL_BLACK : LUT_LEVEL_HOLD, frames);
+  send_one_step_lut(*this, 0x24, UC8151Dx_LUTB_SIZE, LUT_LEVEL_HOLD, frames);
 
   const uint8_t *previous = reinforce ? this->buffer_ : this->shown_;
   const uint32_t buf_len = this->get_buffer_length_();
